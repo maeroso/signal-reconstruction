@@ -26,7 +26,6 @@ erroMinimo = numpy.float64('1.0e-4')
 
 # %%
 
-start = time.time()
 
 f_old = numpy.zeros_like(numpy.matmul(H.transpose(), g))
 
@@ -62,11 +61,6 @@ while True:
     if erro < erroMinimo:
         break
 
-
-end = time.time()
-print('Fim do precessamento da imagem -> Minutos: ' +
-      str(int((end - start) / 60)) + '   Segundos: ' + str(int((end - start) % 60)))
-
 f_reshaped = f_next.reshape(60, 60)
 
 primeiraImagem = Image.fromarray(cv2.normalize(
@@ -79,6 +73,7 @@ primeiraImagem.show()
 
 c = numpy.linalg.norm(numpy.matmul(H.transpose(), H), ord=2)
 
+
 # %%
 
 f_old = numpy.zeros_like(numpy.matmul(H.transpose(), g))
@@ -89,14 +84,18 @@ alfa_old = float(1)
 
 S = 794
 
-start = time.time()
 
 lmb = numpy.max(numpy.absolute(numpy.matmul(H.transpose(), g))) * 0.10
 
-for x in range(10):
+limiar = numpy.absolute(lmb / c)
 
-    f_next = math.log(S, lmb / c) * (y_old + numpy.matmul(
+for x in range(1):
+
+    shrinkageVector = (y_old + numpy.matmul(
         H.transpose() * (1/c), (g - numpy.matmul(H, y_old))))
+
+    f_next = numpy.where(numpy.logical_or(
+        shrinkageVector < -limiar, shrinkageVector > limiar), 0, shrinkageVector)
 
     alfa_next = (1 + math.sqrt(1 + 4 * math.pow(alfa_old, 2))) / 2
 
@@ -108,10 +107,6 @@ for x in range(10):
 
     y_old = y_next
 
-
-end = time.time()
-print('Fim do precessamento da imagem -> ' +
-      str(end - start))
 
 f_reshaped = f_next.reshape(60, 60)
 
