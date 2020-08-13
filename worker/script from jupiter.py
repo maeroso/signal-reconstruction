@@ -8,21 +8,38 @@ from PIL import Image
 import numpy
 import pandas
 import math
+import tracemalloc
+import resource
 
-# start = time.time()
+
+tracemalloc.start()
+
+
+print(
+    f"Current memory usage is {tracemalloc.get_traced_memory()[0] / 10**6}MB")
+
 
 # %%
 
 H = pandas.read_csv('./../files/H-1/H-1.txt',
                     header=None, dtype=float).to_numpy()
 
+print(
+    f"Current memory usage is {tracemalloc.get_traced_memory()[0] / 10**6}MB")
+
 # %%
 
 g = pandas.read_csv('./../files/avaliacao/sinal2.csv', sep='\n',
                     decimal=',', header=None, dtype=float).to_numpy()
 
+print(
+    f"Current memory usage is {tracemalloc.get_traced_memory()[0] / 10**6}MB")
+
 # %%
 erroMinimo = numpy.float64('1.0e-4')
+
+print(
+    f"Current memory usage is {tracemalloc.get_traced_memory()[0] / 10**6}MB")
 
 # %%
 
@@ -61,6 +78,9 @@ while True:
     if erro < erroMinimo:
         break
 
+print(
+    f"Current memory usage is {tracemalloc.get_traced_memory()[0] / 10**6}MB")
+
 f_reshaped = f_next.reshape(60, 60)
 
 primeiraImagem = Image.fromarray(cv2.normalize(
@@ -68,11 +88,15 @@ primeiraImagem = Image.fromarray(cv2.normalize(
 
 primeiraImagem.show()
 
+print(
+    f"Current memory usage is {tracemalloc.get_traced_memory()[0] / 10**6}MB")
 
 # %%
 
 c = numpy.linalg.norm(numpy.matmul(H.transpose(), H), ord=2)
 
+print(
+    f"Current memory usage is {tracemalloc.get_traced_memory()[0] / 10**6}MB")
 
 # %%
 
@@ -82,22 +106,24 @@ y_old = f_old
 
 alfa_old = float(1)
 
-S = 794
 
+lambdaValue = numpy.max(numpy.absolute(numpy.matmul(H.transpose(), g))) * 0.10
 
-lmb = numpy.max(numpy.absolute(numpy.matmul(H.transpose(), g))) * 0.10
+limiar = numpy.absolute(lambdaValue / c)
+print(
+    f"Current memory usage is {tracemalloc.get_traced_memory()[0] / 10**6}MB")
 
-limiar = numpy.absolute(lmb / c)
+for x in range(2):
 
-for x in range(1):
-
-    shrinkageVector = (y_old + numpy.matmul(
-        H.transpose() * (1/c), (g - numpy.matmul(H, y_old))))
+    shrinkageVector = y_old + numpy.matmul(
+        H.transpose() * (1/c),
+        numpy.subtract(g, numpy.matmul(H, y_old))
+    )
 
     f_next = numpy.where(numpy.logical_or(
-        shrinkageVector < -limiar, shrinkageVector > limiar), 0, shrinkageVector)
+        shrinkageVector <= -limiar, shrinkageVector >= limiar), 0, shrinkageVector)
 
-    alfa_next = (1 + math.sqrt(1 + 4 * math.pow(alfa_old, 2))) / 2
+    alfa_next = (1 + numpy.sqrt(1 + 4 * math.pow(alfa_old, 2))) / 2
 
     y_next = f_next + ((alfa_old - 1)/alfa_next) * (f_next - f_old)
 
@@ -107,6 +133,9 @@ for x in range(1):
 
     y_old = y_next
 
+print(
+    f"Current memory usage is {tracemalloc.get_traced_memory()[0] / 10**6}MB")
+
 
 f_reshaped = f_next.reshape(60, 60)
 
@@ -115,5 +144,7 @@ primeiraImagem = Image.fromarray(cv2.normalize(
 
 primeiraImagem.show()
 
+
+tracemalloc.stop()
 
 # %%
