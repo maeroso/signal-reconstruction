@@ -7,49 +7,64 @@ class FileReader extends React.Component {
   constructor() {
     super();
     this.state = {
-      csvfile: undefined,
+      csvFile: undefined,
       data: undefined,
+      numberOfTransducer: 64,
+      numberOfSamples: 794,
     };
     this.updateData = this.updateData.bind(this);
   }
 
   handleChange = (event) => {
     this.setState({
-      csvfile: event.target.files[0],
+      csvFile: event.target.files[0],
     });
   };
 
   importCSV = () => {
-    const { csvfile } = this.state;
-    Papa.parse(csvfile, {
+    const { csvFile } = this.state;
+    Papa.parse(csvFile, {
       complete: this.updateData,
       header: false,
     });
   };
 
-  incrementaSinalXVezes = (vetor, numeroDeIncrementos) => {
-    let vetorDeRetorno = vetor;
-    for (let contador = 0; contador < numeroDeIncrementos; contador++) {
-      vetorDeRetorno = vetorDeRetorno.map((value, index) => {
-        return value * 100 + (1 / 20) * index * Math.sqrt(index);
-      });
+  signalIncrement = (inputVector) => {
+    const { numberOfSamples, numberOfTransducer } = this.state;
+
+    const returnVector = inputVector;
+
+    for (let lineIndex = 0; lineIndex < numberOfSamples; lineIndex++) {
+      /**
+       * I preferred to use two "for" instead of a "map",
+       * because I wanted to avoid repeating the square root calculation
+       * at each position of the vector
+       */
+      const sumValue = (1 / 20) * lineIndex * Math.sqrt(lineIndex);
+
+      for (let columIndex = 0; columIndex < numberOfTransducer; columIndex++) {
+        const flatMatrixIndex = lineIndex + columIndex * numberOfSamples;
+
+        returnVector[flatMatrixIndex] = inputVector[flatMatrixIndex] + sumValue;
+      }
     }
-    return vetorDeRetorno;
+
+    return returnVector;
   };
 
   updateData(result) {
     this.setState({ data: result.data });
     console.log(this.state.data);
-    console.log(this.incrementaSinalXVezes(this.state.data, 80));
+    console.log(this.signalIncrement(this.state.data));
   }
 
   render() {
-    console.log(this.state.csvfile);
+    console.log(this.state.csvFile);
 
     return (
       <div className="App">
         <h2>Import CSV File!</h2>
-        <h4>O resultado irá aparecer no console</h4>
+        <h4>The result will be displayed on the console</h4>
         <input
           className="csv-input"
           type="file"
