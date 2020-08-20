@@ -113,15 +113,28 @@ limiar = numpy.absolute(lambdaValue / c)
 print(
     f"Current memory usage is {tracemalloc.get_traced_memory()[0] / 10**6}MB")
 
-for x in range(2):
 
-    shrinkageVector = y_old + numpy.matmul(
+for x in range(5):
+
+    f_next = y_old + numpy.matmul(
         H.transpose() * (1/c),
         numpy.subtract(g, numpy.matmul(H, y_old))
     )
 
-    f_next = numpy.where(numpy.logical_or(
-        shrinkageVector <= -limiar, shrinkageVector >= limiar), 0, shrinkageVector)
+    index = 0
+
+    for sinal in f_next:
+        if sinal >= 0:
+            if sinal - limiar < 0:
+                f_next[index] = 0
+            else:
+                f_next[index] = sinal - limiar
+        else:
+            if sinal + limiar >= 0:
+                f_next[index] = 0
+            else:
+                f_next[index] = sinal + limiar
+        index += 1
 
     alfa_next = (1 + numpy.sqrt(1 + 4 * math.pow(alfa_old, 2))) / 2
 
@@ -146,5 +159,7 @@ primeiraImagem.show()
 
 
 tracemalloc.stop()
+
+# %%
 
 # %%
