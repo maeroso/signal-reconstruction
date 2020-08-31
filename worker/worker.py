@@ -1,5 +1,6 @@
-# To add a new cell, type '# %%'
-# To add a new markdown cell, type '# %% [markdown]'
+# To add a new cell, type ''
+# To add a new markdown cell, type ' [markdown]'
+
 
 import cv2
 from PIL import Image
@@ -7,6 +8,7 @@ import numpy
 import pandas
 import math
 import pika
+import constantes
 
 # variaveis globais
 print(' [*] Carregando dados globais. Aguarde!')
@@ -20,6 +22,7 @@ c = numpy.linalg.norm(numpy.matmul(H.transpose(), H), ord=2)
 
 
 def cgne(g):
+
     f_old = numpy.zeros_like(numpy.matmul(H.transpose(), g))
 
     r_old = g - numpy.matmul(H, f_old)
@@ -31,15 +34,15 @@ def cgne(g):
         a_i = numpy.matmul(r_old.transpose(), r_old, dtype=float) / \
             numpy.matmul(p_old.transpose(), p_old)
 
-        f_next = f_old + numpy.matmul(p_old, a_i)
+        f_next = f_old + p_old * a_i
 
-        r_next = r_old - numpy.matmul(numpy.matmul(H, p_old), a_i)
+        r_next = r_old - numpy.matmul(H, p_old) * a_i
 
         beta = numpy.divide(numpy.matmul(r_next.transpose(), r_next),
                             numpy.matmul(r_old.transpose(), r_old))
 
         p_next = numpy.matmul(H.transpose(), r_next) + \
-            numpy.matmul(p_old, beta)
+            p_old * beta
 
         erro = numpy.absolute(numpy.linalg.norm(
             r_next, ord=2) - numpy.linalg.norm(r_old, ord=2))
@@ -126,27 +129,39 @@ connection = pika.BlockingConnection(
     pika.ConnectionParameters(host='localhost'))
 channel = connection.channel()
 
-channel.queue_declare(queue='task_queue', durable=True)
+channel.queue_declare(queue=constantes.nome_fila_cgne, durable=True)
+channel.queue_declare(queue=constantes.nome_fila_fista, durable=True)
 print(' [*] Aguardando por mensagens')
 
 
-def worker(ch, method, properties, body):
-    # print(" [x] Received %r" % body.decode())
+def cgne_worker(ch, method, properties, body):
+    print(" [x] Received message on cgne worker")
 
-    string_g = body.decode()
-
-    # qual algoritmo vai processar
+    g = numpy.fromstring(body)
 
     # chamar o algoritmo passando G por parâmetro
-    g = numpy.array(list(string_g), dtype=float)
-
     cgne(g)
 
-    print(" [x] Done")
+    print(" [x] Done - CGNE")
+    ch.basic_ack(delivery_tag=method.delivery_tag)
+
+
+def fista_worker(ch, method, properties, body):
+    print(" [x] Received message on fista worker")
+
+    g = numpy.fromstring(body)
+
+    # chamar o algoritmo passando G por parâmetro
+    fast_iterative_shrinkage_thresjolding_algorithm(g)
+
+    print(" [x] Done - FISTA")
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
 
 channel.basic_qos(prefetch_count=1)
-channel.basic_consume(queue='task_queue', on_message_callback=worker)
+channel.basic_consume(queue=constantes.nome_fila_cgne,
+                      on_message_callback=cgne_worker)
+channel.basic_consume(queue=constantes.nome_fila_fista,
+                      on_message_callback=fista_worker)
 
 channel.start_consuming()
