@@ -3,26 +3,26 @@ from pandas import pandas
 import numpy
 import pika
 import sys
+import constantes
 
-g = pandas.read_csv('./../files/avaliacao/sinal2.csv', sep='\n',
+g = pandas.read_csv('./../files/avaliacao/sinal1.csv', sep='\n',
                     decimal=',', header=None, dtype=float).to_numpy()
 
 connection = pika.BlockingConnection(
     pika.ConnectionParameters(host='localhost'))
 channel = connection.channel()
 
-channel.queue_declare(queue='task_queue', durable=True)
+channel.queue_declare(queue=constantes.nome_fila_cgne, durable=True)
 
-message = ', '.join([str(elem) for elem in g])
+message = g.tobytes()
 
 channel.basic_publish(
     exchange='',
-    routing_key='task_queue',
+    routing_key=constantes.nome_fila_cgne,
     body=message,
     properties=pika.BasicProperties(
         delivery_mode=2,  # make message persistent
     ))
-print(" [x] Sent message")
-print(message)
+print(" [x] Sent message on cgne queue")
 
 connection.close()
