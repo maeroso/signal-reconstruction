@@ -61,6 +61,7 @@ class FileReader extends React.Component {
 
     const body = {
       g: g_incrementado,
+      alg: 0
     };
 
     console.log(g_incrementado);
