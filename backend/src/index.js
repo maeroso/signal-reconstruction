@@ -13,7 +13,19 @@ app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 
 app.post("/upload", (req, res) => {
-  const { g } = req.body;
+  const { g, alg } = req.body;
+
+  if (alg === undefined) {
+    res.status(400).send({message: 'Campo alg necessário'})
+  }
+  if (!(alg instanceof Number)) {
+    res.status(400).send({message: 'Campo alg precisa ser número'})
+  }
+  if (alg !== 0 && alg !== 1) {
+    res.status(400).send({message: 'Algoritmo inválido'})
+  }  
+
+  const queue = alg === 0 ? 'cgne_queue' : 'fista_queue'
 
   amqp.connect("amqp://localhost", function (error0, connection) {
     if (error0) {
@@ -23,24 +35,22 @@ app.post("/upload", (req, res) => {
       if (error1) {
         throw error1;
       }
-      var queue = "cgne_queue";
+      var queue = queue;
       var msg = g;
 
       channel.assertQueue(queue, {
         durable: true,
       });
-      channel.sendToQueue(queue, Buffer.from(msg, "base64"), {
+      channel.sendToQueue(queue, Buffer.from(JSON.stringify(msg)), {
         persistent: true,
       });
       console.log(" [x] Sent '%s'", msg);
     });
     setTimeout(function () {
       connection.close();
-      process.exit(0);
+      res.send(g);
     }, 500);
   });
-
-  res.send(g);
 });
 
 app.listen(port, () => {
