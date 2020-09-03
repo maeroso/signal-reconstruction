@@ -2,6 +2,7 @@ import React from "react";
 import logo from "./logo.svg";
 import "./App.css";
 import Papa from "papaparse";
+import axios from "axios";
 
 class FileReader extends React.Component {
   constructor() {
@@ -55,7 +56,18 @@ class FileReader extends React.Component {
   updateData(result) {
     this.setState({ data: result.data });
     console.log(this.state.data);
-    console.log(this.signalIncrement(this.state.data));
+
+    const g_incrementado = this.signalIncrement(this.state.data);
+
+    const body = {
+      g: g_incrementado,
+    };
+
+    console.log(g_incrementado);
+
+    axios.post("http://localhost:3333/upload", body).then(function (response) {
+      console.log("salvo com sucesso", response);
+    });
   }
 
   render() {
