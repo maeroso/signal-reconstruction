@@ -11,59 +11,60 @@ import pika
 import constantes
 import base64
 import urllib
+import json
 
 # variaveis globais
 print(' [*] Carregando dados globais. Aguarde!')
 
-# H = pandas.read_csv('./../files/H-1/H-1.txt',
-#                     header=None, dtype=float).to_numpy()
+H = pandas.read_csv('./../files/H-1/H-1.txt',
+                     header=None, dtype=float).to_numpy()
 
-# erro_minimo = numpy.float64('1.0e-4')
+erro_minimo = numpy.float64('1.0e-4')
 
-# c = numpy.linalg.norm(numpy.matmul(H.transpose(), H), ord=2)
+c = numpy.linalg.norm(numpy.matmul(H.transpose(), H), ord=2)
 
 
-# def cgne(g):
+def cgne(g):
 
-#     f_old = numpy.zeros_like(numpy.matmul(H.transpose(), g))
+    f_old = numpy.zeros_like(numpy.matmul(H.transpose(), g))
 
-#     r_old = g - numpy.matmul(H, f_old)
+    r_old = g - numpy.matmul(H, f_old)
 
-#     p_old = numpy.matmul(H.transpose(), r_old)
+    p_old = numpy.matmul(H.transpose(), r_old)
 
-#     while True:
+    while True:
 
-#         a_i = numpy.matmul(r_old.transpose(), r_old, dtype=float) / \
-#             numpy.matmul(p_old.transpose(), p_old)
+        a_i = numpy.matmul(r_old.transpose(), r_old, dtype=float) / \
+            numpy.matmul(p_old.transpose(), p_old)
 
-#         f_next = f_old + p_old * a_i
+        f_next = f_old + p_old * a_i
 
-#         r_next = r_old - numpy.matmul(H, p_old) * a_i
+        r_next = r_old - numpy.matmul(H, p_old) * a_i
 
-#         beta = numpy.divide(numpy.matmul(r_next.transpose(), r_next),
-#                             numpy.matmul(r_old.transpose(), r_old))
+        beta = numpy.divide(numpy.matmul(r_next.transpose(), r_next),
+                             numpy.matmul(r_old.transpose(), r_old))
 
-#         p_next = numpy.matmul(H.transpose(), r_next) + \
-#             p_old * beta
+        p_next = numpy.matmul(H.transpose(), r_next) + \
+            p_old * beta
 
-#         erro = numpy.absolute(numpy.linalg.norm(
-#             r_next, ord=2) - numpy.linalg.norm(r_old, ord=2))
+        erro = numpy.absolute(numpy.linalg.norm(
+            r_next, ord=2) - numpy.linalg.norm(r_old, ord=2))
 
-#         p_old = p_next
+        p_old = p_next
 
-#         f_old = f_next
+        f_old = f_next
 
-#         r_old = r_next
+        r_old = r_next
 
-#         if erro < erro_minimo:
-#             break
+        if erro < erro_minimo:
+            break
 
-#     f_reshaped = f_next.reshape(60, 60)
+    f_reshaped = f_next.reshape(60, 60)
 
-#     primeira_imagem = Image.fromarray(cv2.normalize(
-#         f_reshaped.transpose(), numpy.zeros_like(f_reshaped), 255, 0, cv2.NORM_MINMAX))
+    primeira_imagem = Image.fromarray(cv2.normalize(
+        f_reshaped.transpose(), numpy.zeros_like(f_reshaped), 255, 0, cv2.NORM_MINMAX))
 
-#     primeira_imagem.show()
+    primeira_imagem.show()
 
 
 # def funcao_s(sinal, index, limiar):
@@ -139,14 +140,18 @@ print(' [*] Aguardando por mensagens')
 def cgne_worker(ch, method, properties, body):
     print(" [x] Received message on cgne worker")
 
-    decoded = base64.b64decode(body)
+    # decoded = body.decode()
 
-    print(decoded)
+    g = numpy.fromstring(body)
+
+    npg = numpy.array(g)
+
+    print(npg)
 
     # g = numpy.frombuffer(body, dtype=numpy.float32)
 
     # chamar o algoritmo passando G por parâmetro
-    # cgne(g)
+    cgne(npg)
 
     # print(g)
 
