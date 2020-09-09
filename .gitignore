@@ -1,2 +1,8 @@
 files/H-1/
 worker/__pycache__/
+
+worker/.idea/
+
+client/.idea/
+
+backend/.idea/
