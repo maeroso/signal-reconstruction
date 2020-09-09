@@ -15,10 +15,12 @@ app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 app.post("/upload", (req, res) => {
   const { g, alg } = req.body;
 
+  console.log('type', typeof alg)
+
   if (alg === undefined) {
     res.status(400).send({message: 'Campo alg necessário'})
   }
-  if (!(alg instanceof Number)) {
+  if (!(typeof alg === 'number')) {
     res.status(400).send({message: 'Campo alg precisa ser número'})
   }
   if (alg !== 0 && alg !== 1) {
@@ -35,13 +37,13 @@ app.post("/upload", (req, res) => {
       if (error1) {
         throw error1;
       }
-      var queue = queue;
-      var msg = g;
+      // var queue = queue;
+      var msg = /* '[' */ g.join() /*.toString().replace(/,\s*$/, "]"); */
 
       channel.assertQueue(queue, {
         durable: true,
       });
-      channel.sendToQueue(queue, Buffer.from(JSON.stringify(msg)), {
+      channel.sendToQueue(queue, Buffer.from(msg), {
         persistent: true,
       });
       console.log(" [x] Sent '%s'", msg);
