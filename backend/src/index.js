@@ -4,57 +4,58 @@ const bodyParser = require("body-parser");
 const app = express();
 const port = 3333;
 
-var amqp = require("amqplib/callback_api");
+const amqp = require("amqplib/callback_api");
 
 app.use(cors());
 
 // parse application/json
-app.use(bodyParser.json({ limit: "50mb" }));
-app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
+app.use(bodyParser.json({limit: "50mb"}));
+app.use(bodyParser.urlencoded({limit: "50mb", extended: true}));
 
 app.post("/upload", (req, res) => {
-  const { g, alg } = req.body;
+    const {g, alg} = req.body;
 
-  console.log('type', typeof alg)
+    console.log('type', typeof alg)
 
-  if (alg === undefined) {
-    res.status(400).send({message: 'Campo alg necessário'})
-  }
-  if (!(typeof alg === 'number')) {
-    res.status(400).send({message: 'Campo alg precisa ser número'})
-  }
-  if (alg !== 0 && alg !== 1) {
-    res.status(400).send({message: 'Algoritmo inválido'})
-  }  
-
-  const queue = alg === 0 ? 'cgne_queue' : 'fista_queue'
-
-  amqp.connect("amqp://localhost", function (error0, connection) {
-    if (error0) {
-      throw error0;
+    if (alg === undefined) {
+        res.status(400).send({message: 'Campo alg necessário'})
     }
-    connection.createChannel(function (error1, channel) {
-      if (error1) {
-        throw error1;
-      }
-      // var queue = queue;
-      var msg = /* '[' */ g.join() /*.toString().replace(/,\s*$/, "]"); */
+    if (!(typeof alg === 'number')) {
+        res.status(400).send({message: 'Campo alg precisa ser número'})
+    }
+    if (alg !== 0 && alg !== 1) {
+        res.status(400).send({message: 'Algoritmo inválido'})
+    }
 
-      channel.assertQueue(queue, {
-        durable: true,
-      });
-      channel.sendToQueue(queue, Buffer.from(msg), {
-        persistent: true,
-      });
-      console.log(" [x] Sent '%s'", msg);
+    const queue = alg === 0 ? 'cgne_queue' : 'fista_queue'
+
+    amqp.connect("amqp://localhost", function (error0, connection) {
+        if (error0) {
+            throw error0;
+        }
+        connection.createChannel(function (error1, channel) {
+            if (error1) {
+                throw error1;
+            }
+            // var queue = queue;
+            let msg = /* '[' */ g.join().slice(0, -1) /*.toString().replace(/,\s*$/, "]"); */
+
+            channel.assertQueue(queue, {
+                durable: true,
+            });
+            channel.sendToQueue(queue, Buffer.from(msg), {
+                persistent: true,
+            });
+            // console.log(" [x] Sent '%s'", msg);
+            res.send(msg);
+        });
+        setTimeout(function () {
+            connection.close();
+
+        }, 500);
     });
-    setTimeout(function () {
-      connection.close();
-      res.send(g);
-    }, 500);
-  });
 });
 
 app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`);
+    console.log(`Example app listening at http://localhost:${port}`);
 });
