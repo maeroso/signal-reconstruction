@@ -27,12 +27,16 @@ class FileReader extends React.Component {
         Papa.parse(csvFile, {
             complete: this.updateData,
             header: false,
+            delimiter: '\r\n',
+            transform(value, field) {
+                return value.replace(',', '.').replace('E', 'e');
+            }
         });
     };
 
     signalIncrement = (inputVector) => {
         const {numberOfSamples, numberOfTransducer} = this.state;
-
+        // debugger;
         const returnVector = inputVector;
 
         for (let lineIndex = 0; lineIndex < numberOfSamples; lineIndex++) {
@@ -41,12 +45,13 @@ class FileReader extends React.Component {
              * because I wanted to avoid repeating the square root calculation
              * at each position of the vector
              */
-            const sumValue = (1 / 20) * lineIndex * Math.sqrt(lineIndex);
+            const multiplicationValue = 100 +(1 / 20) * (lineIndex + 1) * Math.sqrt(lineIndex + 1);
 
-            for (let columIndex = 0; columIndex < numberOfTransducer; columIndex++) {
-                const flatMatrixIndex = lineIndex + columIndex * numberOfSamples;
+            for (let columnIndex = 0; columnIndex < numberOfTransducer; columnIndex++) {
+                const flatMatrixIndex = lineIndex + columnIndex * numberOfSamples;
 
-                returnVector[flatMatrixIndex] = inputVector[flatMatrixIndex] + sumValue;
+                returnVector[flatMatrixIndex] = parseFloat(inputVector[flatMatrixIndex]) * multiplicationValue;
+                // returnVector[flatMatrixIndex] = parseFloat(inputVector[flatMatrixIndex]);
             }
         }
 
@@ -55,27 +60,22 @@ class FileReader extends React.Component {
 
     updateData(result) {
         this.setState({data: result.data});
+        // debugger;
         console.log(this.state.data);
 
-        const g_incrementado = this.signalIncrement(
-            this.state.data.map((value) => {
-                return value[0].replace(',', '.');
-            })
+        const incrementalSignal = this.signalIncrement(
+            this.state.data
         );
 
-        // const g_incrementado = this.state.data.map((value) => {
-        //     return value[0].replace(',', '.');
-        // });
-
         const body = {
-            g: g_incrementado,
+            g: incrementalSignal,
             alg: 0
         };
 
-        console.log(g_incrementado);
+        console.log(incrementalSignal);
 
         axios.post("http://localhost:3333/upload", body).then(function (response) {
-            console.log("salvo com sucesso", response);
+            console.log("save successfully", response);
         });
     }
 
