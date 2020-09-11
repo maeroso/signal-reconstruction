@@ -2,24 +2,23 @@
 # To add a new markdown cell, type ' [markdown]'
 
 
+import math
+
 import cv2
-from PIL import Image
 import numpy
 import pandas
-import math
 import pika
-import constantes
-import base64
-import urllib
-import json
+from PIL import Image
 
-# variaveis globais
-print(' [*] Carregando dados globais. Aguarde!')
+import constantes
+
+# global data
+print(' [*] Loading global data. Wait!')
 
 H = pandas.read_csv('./../files/H-1/H-1.txt',
                     header=None, dtype=float).to_numpy()
 
-erro_minimo = numpy.float64('1.0e-4')
+minimal_error = numpy.float64('1.0e-4')
 
 c = numpy.linalg.norm(numpy.matmul(H.transpose(), H), ord=2)
 
@@ -31,7 +30,19 @@ def cgne(g):
 
     p_old = numpy.matmul(H.transpose(), r_old)
 
-    while True:
+    loop_counter = 0
+
+    loop_maximum = 100
+
+    f_next = 0
+
+    error = 0
+
+    best_try = []
+
+    best_try_error = 99999999999
+
+    while loop_counter < loop_maximum:
 
         a_i = numpy.matmul(r_old.transpose(), r_old, dtype=float) / \
               numpy.matmul(p_old.transpose(), p_old)
@@ -43,10 +54,9 @@ def cgne(g):
         beta = numpy.divide(numpy.matmul(r_next.transpose(), r_next),
                             numpy.matmul(r_old.transpose(), r_old))
 
-        p_next = numpy.matmul(H.transpose(), r_next) + \
-                 p_old * beta
+        p_next = numpy.matmul(H.transpose(), r_next) + p_old * beta
 
-        erro = numpy.absolute(numpy.linalg.norm(
+        error = numpy.absolute(numpy.linalg.norm(
             r_next, ord=2) - numpy.linalg.norm(r_old, ord=2))
 
         p_old = p_next
@@ -55,31 +65,42 @@ def cgne(g):
 
         r_old = r_next
 
-        if erro < erro_minimo:
+        if error < best_try_error:
+            best_try = f_next
+            best_try_error = error
+
+        if error < minimal_error:
             break
+
+        loop_counter = 1 + loop_counter
+
+    if loop_counter >= loop_maximum:
+        print(' [x] Maximum of', loop_maximum, 'attempts reached, error remains at', error)
+        print(' [x] Showing best attempt with error at', best_try_error)
+        f_next = best_try
 
     f_reshaped = f_next.reshape(60, 60)
 
-    primeira_imagem = Image.fromarray(cv2.normalize(
+    first_image = Image.fromarray(cv2.normalize(
         f_reshaped.transpose(), numpy.zeros_like(f_reshaped), 255, 0, cv2.NORM_MINMAX))
 
-    primeira_imagem.show()
+    first_image.show()
 
 
-def funcao_s(sinal, index, limiar):
-    if sinal >= 0:
-        if sinal - limiar < 0:
+def s_function(signal, threshold):
+    if signal >= 0:
+        if signal - threshold < 0:
             return 0
         else:
-            return sinal - limiar
+            return signal - threshold
     else:
-        if sinal + limiar >= 0:
+        if signal + threshold >= 0:
             return 0
         else:
-            return sinal + limiar
+            return signal + threshold
 
 
-def fast_iterative_shrinkage_thresjolding_algorithm(g):
+def fast_iterative_shrinkage_thresholding_algorithm(g):
     f_old = numpy.zeros_like(numpy.matmul(H.transpose(), g))
 
     y_old = f_old
@@ -89,7 +110,15 @@ def fast_iterative_shrinkage_thresjolding_algorithm(g):
     lambda_value = numpy.max(numpy.absolute(
         numpy.matmul(H.transpose(), g))) * 0.10
 
-    limiar = numpy.absolute(lambda_value / c)
+    threshold = numpy.absolute(lambda_value / c)
+
+    f_next = 0
+
+    loop_counter = 0
+
+    loop_maximum = 30
+
+    error = 0
 
     for x in range(5):
 
@@ -100,8 +129,8 @@ def fast_iterative_shrinkage_thresjolding_algorithm(g):
 
         index = 0
 
-        for sinal in f_next:
-            f_next[index] = funcao_s(sinal, index, limiar)
+        for signal in f_next:
+            f_next[index] = s_function(signal, threshold)
 
             index += 1
 
@@ -115,15 +144,18 @@ def fast_iterative_shrinkage_thresjolding_algorithm(g):
 
         y_old = y_next
 
+    if loop_counter >= loop_maximum:
+        print('[x] Maximum attempt limit reached, image error remains at ', error)
+
     f_reshaped = f_next.reshape(60, 60)
 
-    primeira_imagem = Image.fromarray(cv2.normalize(
+    first_image = Image.fromarray(cv2.normalize(
         f_reshaped.transpose(), numpy.zeros_like(f_reshaped), 255, 0, cv2.NORM_MINMAX))
 
-    primeira_imagem.show()
+    first_image.show()
 
 
-print(' [*] Abrindo canal de comunicação')
+print(' [*] Opening communication channel')
 
 connection = pika.BlockingConnection(
     pika.ConnectionParameters(host='localhost'))
@@ -131,32 +163,45 @@ channel = connection.channel()
 
 channel.queue_declare(queue=constantes.nome_fila_cgne, durable=True)
 channel.queue_declare(queue=constantes.nome_fila_fista, durable=True)
-print(' [*] Aguardando por mensagens')
+print(' [*] Waiting for messages')
+
+
+def convert_string_to_float(value):
+    return float(value)
 
 
 def cgne_worker(ch, method, properties, body):
     print(" [x] Received message on cgne worker")
 
-    string_array = numpy.array(body.decode().split(','))
+    decoded = body.decode()
 
-    g = string_array.astype(numpy.float)
+    splinted = decoded.split(',')
 
-    # chamar o algoritmo passando G por parâmetro
+    string_array = numpy.array(splinted)
+
+    g = string_array.astype(numpy.float64)
+
+    # call the algorithm passing 'g' by parameter
     cgne(g)
 
     print(" [x] Done - CGNE")
+
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
 
 def fista_worker(ch, method, properties, body):
-    print(" [x] Received message on fista worker")
+    print(" [x] Received message on FISTA worker")
 
-    string_array = numpy.array(body.decode().split(','))
+    decoded = body.decode()
 
-    g = string_array.astype(numpy.float)
+    splinted = decoded.split(',')
 
-    # chamar o algoritmo passando G por parâmetro
-    fast_iterative_shrinkage_thresjolding_algorithm(g)
+    string_array = numpy.array(splinted)
+
+    g = string_array.astype(numpy.float64)
+
+    # call the algorithm passing 'g' by parameter
+    fast_iterative_shrinkage_thresholding_algorithm(g)
 
     print(" [x] Done - FISTA")
     ch.basic_ack(delivery_tag=method.delivery_tag)

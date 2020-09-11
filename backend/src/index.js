@@ -38,7 +38,16 @@ app.post("/upload", (req, res) => {
                 throw error1;
             }
             // var queue = queue;
-            let msg = /* '[' */ g.join().slice(0, -1) /*.toString().replace(/,\s*$/, "]"); */
+            let msg = /* '[' */ g.join() /*.toString().replace(/,\s*$/, "]"); */
+
+            while (true) {
+                if (msg.substring(msg.length - 1, msg.length) === ',') {
+                    msg = msg.substring(0, msg.length - 1);
+                } else {
+                    break;
+                }
+            }
+
 
             channel.assertQueue(queue, {
                 durable: true,
