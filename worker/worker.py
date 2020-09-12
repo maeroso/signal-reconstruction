@@ -120,7 +120,7 @@ def fast_iterative_shrinkage_thresholding_algorithm(g):
 
     error = 0
 
-    for x in range(5):
+    for x in range(15):
 
         f_next = y_old + numpy.matmul(
             H.transpose() * (1 / c),
@@ -181,12 +181,12 @@ def cgne_worker(ch, method, properties, body):
 
     g = string_array.astype(numpy.float64)
 
+    ch.basic_ack(delivery_tag=method.delivery_tag)
+
     # call the algorithm passing 'g' by parameter
     cgne(g)
 
     print(" [x] Done - CGNE")
-
-    ch.basic_ack(delivery_tag=method.delivery_tag)
 
 
 def fista_worker(ch, method, properties, body):
