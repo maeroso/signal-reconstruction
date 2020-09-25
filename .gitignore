@@ -6,3 +6,5 @@ worker/.idea/
 client/.idea/
 
 backend/.idea/
+
+backend/node_modules/
