@@ -1,216 +1,73 @@
 # To add a new cell, type ''
 # To add a new markdown cell, type ' [markdown]'
 
-
-import math
-
-import cv2
 import numpy
-import pandas
 import pika
-from PIL import Image
 
-import constantes
+from constantes import Constantes
+from global_data import GlobalData
+from fista_thread import FISTAThread
+from cgne_thread import CgneThread
 
-# global data
-print(' [*] Loading global data. Wait!')
 
-H = pandas.read_csv('./../files/H-1/H-1.txt',
-                    header=None, dtype=float).to_numpy()
+class Worker:
 
-minimal_error = numpy.float64('1.0e-4')
+    def cgne_worker(self, ch, method, properties, body):
+        print(" [x] Received message on cgne worker")
 
-c = numpy.linalg.norm(numpy.matmul(H.transpose(), H), ord=2)
+        decoded = body.decode()
 
+        splinted = decoded.split(',')
 
-def cgne(g):
-    f_old = numpy.zeros_like(numpy.matmul(H.transpose(), g))
+        string_array = numpy.array(splinted)
 
-    r_old = g - numpy.matmul(H, f_old)
+        g = string_array.astype(numpy.float64)
 
-    p_old = numpy.matmul(H.transpose(), r_old)
+        ch.basic_ack(delivery_tag=method.delivery_tag)
 
-    loop_counter = 0
+        # call the algorithm passing 'g' by parameter
+        CgneThread(self.global_data, g)
 
-    loop_maximum = 100
+        print(" [x] Done - CGNE")
 
-    f_next = 0
+    def fista_worker(self, ch, method, properties, body):
+        print(" [x] Received message on FISTA worker")
 
-    error = 0
+        decoded = body.decode()
 
-    best_try = []
+        splinted = decoded.split(',')
 
-    best_try_error = 99999999999
+        string_array = numpy.array(splinted)
 
-    while loop_counter < loop_maximum:
+        g = string_array.astype(numpy.float64)
 
-        a_i = numpy.matmul(r_old.transpose(), r_old, dtype=float) / \
-              numpy.matmul(p_old.transpose(), p_old)
+        # call the algorithm passing 'g' by parameter
 
-        f_next = f_old + p_old * a_i
+        FISTAThread(self.global_data, g)
 
-        r_next = r_old - numpy.matmul(H, p_old) * a_i
+        print(" [x] Done - FISTA")
+        ch.basic_ack(delivery_tag=method.delivery_tag)
 
-        beta = numpy.divide(numpy.matmul(r_next.transpose(), r_next),
-                            numpy.matmul(r_old.transpose(), r_old))
+    def __init__(self):
+        self.constants = Constantes()
 
-        p_next = numpy.matmul(H.transpose(), r_next) + p_old * beta
+        self.global_data = GlobalData(False)
 
-        error = numpy.absolute(numpy.linalg.norm(
-            r_next, ord=2) - numpy.linalg.norm(r_old, ord=2))
+        print(' [*] Opening communication channel')
 
-        p_old = p_next
+        self.connection = pika.BlockingConnection(
+            pika.ConnectionParameters(host='localhost'))
+        self.channel = self.connection.channel()
 
-        f_old = f_next
+        self.channel.queue_declare(queue=self.constants.nome_fila_cgne, durable=True)
+        self.channel.queue_declare(queue=self.constants.nome_fila_fista, durable=True)
 
-        r_old = r_next
+        print(' [*] Waiting for messages')
 
-        if error < best_try_error:
-            best_try = f_next
-            best_try_error = error
+        self.channel.basic_qos(prefetch_count=1)
+        self.channel.basic_consume(queue=self.constants.nome_fila_cgne,
+                                   on_message_callback=self.cgne_worker)
+        self.channel.basic_consume(queue=self.constants.nome_fila_fista,
+                                   on_message_callback=self.fista_worker)
 
-        if error < minimal_error:
-            break
-
-        loop_counter = 1 + loop_counter
-
-    if loop_counter >= loop_maximum:
-        print(' [x] Maximum of', loop_maximum, 'attempts reached, error remains at', error)
-        print(' [x] Showing best attempt with error at', best_try_error)
-        f_next = best_try
-
-    f_reshaped = f_next.reshape(60, 60)
-
-    first_image = Image.fromarray(cv2.normalize(
-        f_reshaped.transpose(), numpy.zeros_like(f_reshaped), 255, 0, cv2.NORM_MINMAX))
-
-    first_image.show()
-
-
-def s_function(signal, threshold):
-    if signal >= 0:
-        if signal - threshold < 0:
-            return 0
-        else:
-            return signal - threshold
-    else:
-        if signal + threshold >= 0:
-            return 0
-        else:
-            return signal + threshold
-
-
-def fast_iterative_shrinkage_thresholding_algorithm(g):
-    f_old = numpy.zeros_like(numpy.matmul(H.transpose(), g))
-
-    y_old = f_old
-
-    alfa_old = float(1)
-
-    lambda_value = numpy.max(numpy.absolute(
-        numpy.matmul(H.transpose(), g))) * 0.10
-
-    threshold = numpy.absolute(lambda_value / c)
-
-    f_next = 0
-
-    loop_counter = 0
-
-    loop_maximum = 30
-
-    error = 0
-
-    for x in range(15):
-
-        f_next = y_old + numpy.matmul(
-            H.transpose() * (1 / c),
-            numpy.subtract(g, numpy.matmul(H, y_old))
-        )
-
-        index = 0
-
-        for signal in f_next:
-            f_next[index] = s_function(signal, threshold)
-
-            index += 1
-
-        alfa_next = (1 + numpy.sqrt(1 + 4 * math.pow(alfa_old, 2))) / 2
-
-        y_next = f_next + ((alfa_old - 1) / alfa_next) * (f_next - f_old)
-
-        f_old = f_next
-
-        alfa_old = alfa_next
-
-        y_old = y_next
-
-    if loop_counter >= loop_maximum:
-        print('[x] Maximum attempt limit reached, image error remains at ', error)
-
-    f_reshaped = f_next.reshape(60, 60)
-
-    first_image = Image.fromarray(cv2.normalize(
-        f_reshaped.transpose(), numpy.zeros_like(f_reshaped), 255, 0, cv2.NORM_MINMAX))
-
-    first_image.show()
-
-
-print(' [*] Opening communication channel')
-
-connection = pika.BlockingConnection(
-    pika.ConnectionParameters(host='localhost'))
-channel = connection.channel()
-
-channel.queue_declare(queue=constantes.nome_fila_cgne, durable=True)
-channel.queue_declare(queue=constantes.nome_fila_fista, durable=True)
-print(' [*] Waiting for messages')
-
-
-def convert_string_to_float(value):
-    return float(value)
-
-
-def cgne_worker(ch, method, properties, body):
-    print(" [x] Received message on cgne worker")
-
-    decoded = body.decode()
-
-    splinted = decoded.split(',')
-
-    string_array = numpy.array(splinted)
-
-    g = string_array.astype(numpy.float64)
-
-    ch.basic_ack(delivery_tag=method.delivery_tag)
-
-    # call the algorithm passing 'g' by parameter
-    cgne(g)
-
-    print(" [x] Done - CGNE")
-
-
-def fista_worker(ch, method, properties, body):
-    print(" [x] Received message on FISTA worker")
-
-    decoded = body.decode()
-
-    splinted = decoded.split(',')
-
-    string_array = numpy.array(splinted)
-
-    g = string_array.astype(numpy.float64)
-
-    # call the algorithm passing 'g' by parameter
-    fast_iterative_shrinkage_thresholding_algorithm(g)
-
-    print(" [x] Done - FISTA")
-    ch.basic_ack(delivery_tag=method.delivery_tag)
-
-
-channel.basic_qos(prefetch_count=1)
-channel.basic_consume(queue=constantes.nome_fila_cgne,
-                      on_message_callback=cgne_worker)
-channel.basic_consume(queue=constantes.nome_fila_fista,
-                      on_message_callback=fista_worker)
-
-channel.start_consuming()
+        self.channel.start_consuming()
