@@ -14,14 +14,14 @@ class GlobalData:
         self.load_transversal_matrix = load_transversal_matrix
 
         if load_transversal_matrix:
-            self.transversal_h = self.H.transpose()
-            self.c = numpy.linalg.norm(numpy.matmul(self.transversal_h, self.H), ord=2)
+            self.transpose_h = self.H.transpose()
+            self.c = numpy.linalg.norm(numpy.matmul(self.transpose_h, self.H), ord=2)
 
         else:
             self.c = numpy.linalg.norm(numpy.matmul(self.H.transpose(), self.H), ord=2)
 
-    def get_transversal_h(self):
+    def get_transpose_h(self):
         if self.load_transversal_matrix:
-            return self.transversal_h
+            return self.transpose_h
         else:
             return self.H.transpose()

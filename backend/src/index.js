@@ -27,7 +27,8 @@ app.post("/upload", (req, res) => {
         res.status(400).send({message: 'Algoritmo inválido'})
     }
 
-    const queue = alg === 0 ? 'cgne_queue' : 'fista_queue'
+    // const queue = alg === 0 ? 'cgne_queue' : 'fista_queue'
+    const queue = "worker"
 
     amqp.connect("amqp://localhost", function (error0, connection) {
         if (error0) {
@@ -37,22 +38,16 @@ app.post("/upload", (req, res) => {
             if (error1) {
                 throw error1;
             }
-            // var queue = queue;
-            let msg = /* '[' */ g.join() /*.toString().replace(/,\s*$/, "]"); */
 
-            while (true) {
-                if (msg.substring(msg.length - 1, msg.length) === ',') {
-                    msg = msg.substring(0, msg.length - 1);
-                } else {
-                    break;
-                }
+            const msg = {
+                signalArray: g,
+                algorithmType: alg
             }
-
 
             channel.assertQueue(queue, {
                 durable: true,
             });
-            channel.sendToQueue(queue, Buffer.from(msg), {
+            channel.sendToQueue(queue, Buffer.from(JSON.stringify(msg)), {
                 persistent: true,
             });
             // console.log(" [x] Sent '%s'", msg);
