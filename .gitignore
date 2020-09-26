@@ -8,3 +8,5 @@ client/.idea/
 backend/.idea/
 
 backend/node_modules/
+
+worker/images/

@@ -1,3 +1,5 @@
+from random import random
+from random import seed
 from threading import Thread
 
 import cv2
@@ -74,6 +76,11 @@ class CgneThread(Thread):
         f_reshaped = f_next.reshape(60, 60)
 
         first_image = Image.fromarray(cv2.normalize(
-            f_reshaped.transpose(), numpy.zeros_like(f_reshaped), 255, 0, cv2.NORM_MINMAX))
+            f_reshaped.transpose().astype(numpy.uint8), numpy.zeros_like(f_reshaped).astype(numpy.uint8), 255, 0,
+            cv2.NORM_MINMAX))
 
-        first_image.save('./images/last_generated_image_by_cgne_algorithm.jpg')
+        seed(1)
+
+        first_image.save('./images/last_generated_image_by_cgne_algorithm_' + str(random()) + '.bmp')
+
+        del self
