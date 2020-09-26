@@ -13,7 +13,7 @@ class CgneThread(Thread):
         super().__init__()
         self.global_data = global_data
         self.signal = g
-        self.run()
+        self.start()
 
     def run(self):
         f_old = numpy.zeros_like(numpy.matmul(self.global_data.get_transpose_h(), self.signal))
@@ -76,4 +76,4 @@ class CgneThread(Thread):
         first_image = Image.fromarray(cv2.normalize(
             f_reshaped.transpose(), numpy.zeros_like(f_reshaped), 255, 0, cv2.NORM_MINMAX))
 
-        first_image.show()
+        first_image.save('./images/last_generated_image_by_cgne_algorithm.jpg')

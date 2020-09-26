@@ -14,7 +14,7 @@ class FISTAThread(Thread):
         super().__init__()
         self.global_data = global_data
         self.signal_array = g
-        self.run()
+        self.start()
 
     @staticmethod
     def s_function(signal, threshold):
@@ -81,4 +81,4 @@ class FISTAThread(Thread):
         first_image = Image.fromarray(cv2.normalize(
             f_reshaped.transpose(), numpy.zeros_like(f_reshaped), 255, 0, cv2.NORM_MINMAX))
 
-        first_image.show()
+        first_image.save('./images/last_generated_image_by_fista_algorithm.jpg')
