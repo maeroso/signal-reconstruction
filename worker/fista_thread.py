@@ -1,7 +1,7 @@
 import math
 
 import cv2
-from ccm import Image
+from PIL import Image
 
 from global_data import GlobalData
 from threading import Thread
@@ -30,14 +30,14 @@ class FISTAThread(Thread):
                 return signal + threshold
 
     def run(self):
-        f_old = numpy.zeros_like(numpy.matmul(self.global_data.get_transversal_h(), self.signal_array))
+        f_old = numpy.zeros_like(numpy.matmul(self.global_data.get_transpose_h(), self.signal_array))
 
         y_old = f_old
 
         alfa_old = float(1)
 
         lambda_value = numpy.max(numpy.absolute(
-            numpy.matmul(self.global_data.get_transversal_h(), self.signal_array))) * 0.10
+            numpy.matmul(self.global_data.get_transpose_h(), self.signal_array))) * 0.10
 
         threshold = numpy.absolute(lambda_value / self.global_data.c)
 
@@ -52,7 +52,7 @@ class FISTAThread(Thread):
         for x in range(15):
 
             f_next = y_old + numpy.matmul(
-                self.global_data.get_transversal_h() * (1 / self.global_data.c),
+                self.global_data.get_transpose_h() * (1 / self.global_data.c),
                 numpy.subtract(self.signal_array, numpy.matmul(self.global_data.H, y_old))
             )
 

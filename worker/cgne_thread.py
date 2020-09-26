@@ -2,7 +2,7 @@ from threading import Thread
 
 import cv2
 import numpy
-from ccm import Image
+from PIL import Image
 
 from global_data import GlobalData
 
@@ -16,11 +16,11 @@ class CgneThread(Thread):
         self.run()
 
     def run(self):
-        f_old = numpy.zeros_like(numpy.matmul(self.global_data.transversal_h, self.signal))
+        f_old = numpy.zeros_like(numpy.matmul(self.global_data.get_transpose_h(), self.signal))
 
         r_old = self.signal - numpy.matmul(self.global_data.H, f_old)
 
-        p_old = numpy.matmul(self.global_data.transversal_h, r_old)
+        p_old = numpy.matmul(self.global_data.get_transpose_h(), r_old)
 
         loop_counter = 0
 
@@ -46,7 +46,7 @@ class CgneThread(Thread):
             beta = numpy.divide(numpy.matmul(r_next.transpose(), r_next),
                                 numpy.matmul(r_old.transpose(), r_old))
 
-            p_next = numpy.matmul(self.global_data.get_transversal_h(), r_next) + p_old * beta
+            p_next = numpy.matmul(self.global_data.get_transpose_h(), r_next) + p_old * beta
 
             error = numpy.absolute(numpy.linalg.norm(
                 r_next, ord=2) - numpy.linalg.norm(r_old, ord=2))
