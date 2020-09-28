@@ -1,24 +1,29 @@
-import pandas
+import sys
+
 import numpy
+import pandas
+import psutil
 
 
 class GlobalData:
 
-    def __init__(self, load_transversal_matrix):
-        print(' [*] Loading global data. Wait!')
+    def __init__(self):
+        sys.stdout.write(" [*] Loading global data. Wait!\n")
 
         self.H = pandas.read_csv('./../files/H-1/H-1.txt',
                                  header=None, dtype=float).to_numpy()
         self.minimal_error = numpy.float64('1.0e-4')
 
-        self.load_transversal_matrix = load_transversal_matrix
+        self.load_transversal_matrix = psutil.virtual_memory().free > 1000000000
 
-        if load_transversal_matrix:
+        if self.load_transversal_matrix:
+            sys.stdout.write(" [X] There is more than 1Gb of free memory, so the transposed H matrix will be cached\n")
             self.transpose_h = self.H.transpose()
-            self.c = numpy.linalg.norm(numpy.matmul(self.transpose_h, self.H), ord=2)
-
         else:
-            self.c = numpy.linalg.norm(numpy.matmul(self.H.transpose(), self.H), ord=2)
+            sys.stdout.write(" [X] There is less than 1Gb of free memory" +
+                             ", so the transposed H matrix will be calculated at run time\n")
+
+        self.c = numpy.linalg.norm(numpy.matmul(self.get_transpose_h(), self.H), ord=2)
 
     def get_transpose_h(self):
         if self.load_transversal_matrix:
