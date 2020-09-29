@@ -3,11 +3,10 @@
 
 import json
 import sys
-import time
+from random import seed, random
 
 import numpy
 import pika
-import psutil
 
 from cgne_thread import CgneThread
 from constants import Constants
@@ -28,32 +27,11 @@ class Worker:
             decoded.replace(',[""]', "")
         )
 
-        show_warning_message = False
-
-        overload = psutil.cpu_percent(percpu=False, interval=5) > 90
-
-        low_memory = psutil.virtual_memory().free < 600000000
-
-        while overload or low_memory:
-            if not show_warning_message:
-                if overload:
-                    sys.stdout.write(" [!] Unable to launch the thread, CPU load greater than 90%\n")
-                if low_memory:
-                    sys.stdout.write(" [!] Unable to start the thread, RAM remaining less than 600Mb\n")
-                show_warning_message = True
-
-            time.sleep(.800)
-
-            overload = psutil.cpu_percent(percpu=False, interval=5) > 90
-
-            low_memory = psutil.virtual_memory().free < 250000000
-
         if json_message['algorithmType'] == self.constants.cgne_algorithm_id:
-            CgneThread(self.global_data, numpy.array(json_message['signalArray']))
-            sys.stdout.write(" [*] CGNE thread was initiate\n")
+            CgneThread(random(), self.global_data, numpy.array(json_message['signalArray']))
+
         else:
-            FISTAThread(self.global_data, numpy.array(json_message['signalArray']))
-            sys.stdout.write(" [*] FISTA thread was initiate\n")
+            FISTAThread(random(), self.global_data, numpy.array(json_message['signalArray']))
 
         ch.basic_ack(delivery_tag=method.delivery_tag)
         sys.stdout.write(' [*] Waiting for messages\n')
@@ -63,6 +41,8 @@ class Worker:
         self.constants = Constants()
 
         self.global_data = GlobalData()
+
+        seed(1)
 
         sys.stdout.write(' [*] Opening communication channel\n')
 
