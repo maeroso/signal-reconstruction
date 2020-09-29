@@ -3,6 +3,7 @@ import logo from "./logo.svg";
 import "./App.css";
 import Papa from "papaparse";
 import axios from "axios";
+import _ from "lodash";
 
 class FileReader extends React.Component {
     constructor(props) {
@@ -40,39 +41,70 @@ class FileReader extends React.Component {
         const returnVector = inputVector;
 
         for (let lineIndex = 0; lineIndex < numberOfSamples; lineIndex++) {
+            debugger
             /**
              * I preferred to use two "for" instead of a "map",
              * because I wanted to avoid repeating the square root calculation
              * at each position of the vector
              */
-            const multiplicationValue = 100 +(1 / 20) * (lineIndex + 1) * Math.sqrt(lineIndex + 1);
+
+            const multiplicationValue = 100 + 1 / (20 * (lineIndex + 1) * Math.sqrt(lineIndex + 1));
 
             for (let columnIndex = 0; columnIndex < numberOfTransducer; columnIndex++) {
                 const flatMatrixIndex = lineIndex + columnIndex * numberOfSamples;
 
                 returnVector[flatMatrixIndex] = parseFloat(inputVector[flatMatrixIndex]) * multiplicationValue;
-                // returnVector[flatMatrixIndex] = parseFloat(inputVector[flatMatrixIndex]);
             }
         }
 
         return returnVector;
     };
 
+    signalIncrement2 = (inputVector) => {
+        let reshaped = this.reshape(inputVector, this.state.numberOfSamples)
+
+        let retorno = [];
+
+        debugger
+
+        for (let lineIndex = 0; lineIndex < reshaped.length - 1; lineIndex++) {
+            for (let columnIndex = 0; columnIndex < reshaped[0].length; columnIndex++) {
+
+                const multiplicationValue = 100 + 1 / 20000 * (columnIndex + 1) * Math.sqrt(columnIndex + 1);
+
+                reshaped[lineIndex][columnIndex] = parseFloat(reshaped[lineIndex][columnIndex]) * multiplicationValue;
+            }
+            retorno = retorno.concat(reshaped[lineIndex])
+        }
+        debugger
+
+        return retorno;
+    }
+
+    reshape(array, n) {
+        return _.compact(array.map(function (el, i) {
+            if (i % n === 0) {
+                return array.slice(i, i + n);
+            }
+        }))
+    }
+
+
     updateData(result) {
         this.setState({data: result.data});
         // debugger;
         console.log(this.state.data);
 
-        const incrementalSignal = this.signalIncrement(
+        const incrementedSignal = this.signalIncrement2(
             this.state.data
         );
 
         const body = {
-            g: incrementalSignal,
+            g: incrementedSignal,
             alg: 0
         };
 
-        console.log(incrementalSignal);
+        console.log(incrementedSignal);
 
         axios.post("http://localhost:3333/upload", body).then(function (response) {
             console.log("save successfully", response);

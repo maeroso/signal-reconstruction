@@ -27,7 +27,6 @@ app.post("/upload", (req, res) => {
         res.status(400).send({message: 'Algoritmo inválido'})
     }
 
-    // const queue = alg === 0 ? 'cgne_queue' : 'fista_queue'
     const queue = "worker"
 
     amqp.connect("amqp://localhost", function (error0, connection) {

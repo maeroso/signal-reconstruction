@@ -1,25 +1,31 @@
 import math
 import sys
-import time
 from threading import Thread
 
 import cv2
 import numpy
-import psutil
 from PIL import Image
 
 from global_data import GlobalData
+from resource_lock import resource_lock
 
 
 class FISTAThread(Thread):
 
-    def __init__(self, global_data: GlobalData, g: numpy.ndarray):
+    def __init__(self, identification, global_data: GlobalData, g: numpy.ndarray):
         super().__init__()
+        self.id = identification
         self.global_data = global_data
         self.signal_array = g
-        self.start()
 
-    def s_function(self, signal, threshold):
+        resource_lock(cpu_lock_warning_message=90,
+                      memory_lock_warning_message="Unable to start the thread, RAM remaining less than 600Mb")
+
+        self.start()
+        sys.stdout.write(" [*] FISTA thread was initiate. Id: " + str(self.id) + "\n")
+
+    @staticmethod
+    def s_function(signal, threshold):
         if signal >= 0:
             if signal - threshold < 0:
                 return 0
@@ -53,27 +59,7 @@ class FISTAThread(Thread):
 
         for counter in range(loop_maximum):
 
-            show_warning_message = False
-
-            overload = psutil.cpu_percent(percpu=False, interval=5) > 85
-
-            low_memory = psutil.virtual_memory().free < 600000000
-
-            while overload or low_memory:
-                if not show_warning_message:
-                    if overload:
-                        sys.stdout.write(" [!] CPU load greater than 85%" +
-                                         ", fista thread will sleep for 1.5 seconds to avoid overload\n")
-                    if low_memory:
-                        sys.stdout.write(" [!] There is less than 600Mb of free memory." +
-                                         " Fista thread will sleep for 1.5 seconds to avoid overload\n")
-                    show_warning_message = True
-
-                time.sleep(.800)
-
-                overload = psutil.cpu_percent(percpu=False, interval=5) > 90
-
-                low_memory = psutil.virtual_memory().free < 250000000
+            resource_lock(minimum_free_memory=1, memory_lock_warning_message="Aguardando liberar memória")
 
             # TODO esse método pesa 2 GB de RAM, deve ser quebrado em pedaçoes menores para debbug e melhoramentos
             f_next = y_old + numpy.matmul(
@@ -113,6 +99,6 @@ class FISTAThread(Thread):
 
         first_image = Image.fromarray(numpy.uint8(normalized.transpose()), mode='L')
 
-        first_image.save('./images/last_generated_image_by_fista_algorithm.bmp')
+        first_image.save('./images/FISTA - ' + str(self.id) + '.bmp')
 
         del self
