@@ -18,8 +18,9 @@ class FISTAThread(Thread):
         self.global_data = global_data
         self.signal_array = g
 
-        resource_lock(cpu_lock_warning_message=90,
-                      memory_lock_warning_message="Unable to start the thread, RAM remaining less than 600Mb")
+        resource_lock(maximum_cpu_load=90, minimum_free_memory=0.6,
+                      memory_lock_warning_message="Unable to start the thread" +
+                                                  str(self.id) + ", RAM remaining less than 600Mb")
 
         self.start()
         sys.stdout.write(" [*] FISTA thread was initiate. Id: " + str(self.id) + "\n")
@@ -38,16 +39,22 @@ class FISTAThread(Thread):
                 return signal + threshold
 
     def run(self):
-        f_old = numpy.zeros_like(numpy.matmul(self.global_data.get_transpose_h(), self.signal_array))
+        f_old = numpy.zeros((3600,), dtype=numpy.float64)
 
         y_old = f_old
 
         alfa_old = float(1)
 
-        lambda_value = numpy.max(numpy.absolute(
-            numpy.matmul(self.global_data.get_transpose_h(), self.signal_array))) * 0.10
+        lambda_value = numpy.multiply(
+            numpy.max(
+                numpy.absolute(
+                    numpy.matmul(self.global_data.get_transpose_h(), self.signal_array)
+                )
+            ), 0.10)
 
-        threshold = numpy.absolute(lambda_value / self.global_data.c)
+        threshold = numpy.absolute(
+            numpy.divide(lambda_value, self.global_data.c)
+        )
 
         f_next = 0
 
@@ -59,26 +66,60 @@ class FISTAThread(Thread):
 
         for counter in range(loop_maximum):
 
-            resource_lock(minimum_free_memory=1, memory_lock_warning_message="Aguardando liberar memória")
+            resource_lock(minimum_free_memory=1.2,
+                          memory_lock_warning_message="Wait memory resource. Thread " + str(self.id))
 
             # TODO esse método pesa 2 GB de RAM, deve ser quebrado em pedaçoes menores para debbug e melhoramentos
-            f_next = y_old + numpy.matmul(
-                self.global_data.get_transpose_h() * (1 / self.global_data.c),
-                numpy.subtract(self.signal_array, numpy.matmul(self.global_data.H, y_old))
-            )
+            f_next = numpy.add(y_old,
+                               numpy.matmul(
+                                   numpy.multiply(self.global_data.get_transpose_h(),
+                                                  numpy.divide(1, self.global_data.c)
+                                                  ),
+                                   numpy.subtract(self.signal_array,
+                                                  numpy.matmul(self.global_data.H, y_old)
+                                                  )
+                               )
+                               )
 
             index = 0
 
             # TODO essa iteração é extremamente demorada, provavelmente dvido a troca de contexto contante,
             #  uma solução se faz necessária
             for signal in f_next:
-                f_next[index] = self.s_function(signal, threshold)
+                if signal >= 0:
+                    if signal - threshold < 0:
+                        f_next[index] = 0
+                    else:
+                        f_next[index] = numpy.subtract(signal, threshold)
+                else:
+                    if signal + threshold >= 0:
+                        f_next[index] = 0
+                    else:
+                        f_next[index] = numpy.add(signal, threshold)
 
                 index += 1
 
-            alfa_next = (1 + numpy.sqrt(1 + 4 * math.pow(alfa_old, 2))) / 2
+            alfa_next = numpy.divide(
+                numpy.add(1,
+                          numpy.sqrt(numpy.add(1,
+                                               numpy.multiply(4,
+                                                              numpy.power(alfa_old, 2)
+                                                              )
+                                               )
+                                     )
+                          )
+                , 2
+            )
 
-            y_next = f_next + ((alfa_old - 1) / alfa_next) * (f_next - f_old)
+            y_next = numpy.add(
+                f_next,
+                numpy.multiply(
+                    numpy.divide(
+                        numpy.subtract(alfa_old, 1), alfa_next
+                    ),
+                    numpy.subtract(f_next, f_old)
+                )
+            )
 
             f_old = f_next
 

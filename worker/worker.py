@@ -21,11 +21,7 @@ class Worker:
 
         decoded = body.decode()
 
-        json_message = json.loads(
-            # TODO tratar json antes de enviar para a fila, o back deve cuidar desse tratamento
-            # TODO remover esse tratamento de emergencia feito com replace
-            decoded.replace(',[""]', "")
-        )
+        json_message = json.loads(decoded)
 
         if json_message['algorithmType'] == self.constants.cgne_algorithm_id:
             CgneThread(random(), self.global_data, numpy.array(json_message['signalArray']))

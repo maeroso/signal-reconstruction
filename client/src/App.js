@@ -38,7 +38,7 @@ class FileReader extends React.Component {
     signalIncrement = (inputVector) => {
         const {numberOfSamples, numberOfTransducer} = this.state;
         // debugger;
-        const returnVector = inputVector;
+        const returnVector = inputVector.slice(0, this.state.numberOfSamples * this.state.numberOfTransducer);
 
         for (let lineIndex = 0; lineIndex < numberOfSamples; lineIndex++) {
             debugger
@@ -48,7 +48,7 @@ class FileReader extends React.Component {
              * at each position of the vector
              */
 
-            const multiplicationValue = 100 + 1 / (20 * (lineIndex + 1) * Math.sqrt(lineIndex + 1));
+            const multiplicationValue = 100 + 1 / 20 * (lineIndex + 1) * Math.sqrt(lineIndex + 1);
 
             for (let columnIndex = 0; columnIndex < numberOfTransducer; columnIndex++) {
                 const flatMatrixIndex = lineIndex + columnIndex * numberOfSamples;
@@ -92,19 +92,12 @@ class FileReader extends React.Component {
 
     updateData(result) {
         this.setState({data: result.data});
-        // debugger;
-        console.log(this.state.data);
 
-        const incrementedSignal = this.signalIncrement2(
-            this.state.data
-        );
 
-        const body = {
-            g: incrementedSignal,
-            alg: 0
-        };
+        const incrementedSignal = this.signalIncrement(this.state.data);
 
-        console.log(incrementedSignal);
+        const body = {g: incrementedSignal, alg: 0};
+
 
         axios.post("http://localhost:3333/upload", body).then(function (response) {
             console.log("save successfully", response);
