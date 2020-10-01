@@ -23,7 +23,9 @@ class GlobalData:
             sys.stdout.write(" [X] There is less than 1Gb of free memory" +
                              ", so the transposed H matrix will be calculated at run time\n")
 
-        self.c = numpy.linalg.norm(numpy.matmul(self.get_transpose_h(), self.H), ord=2)
+        # The both line below assign same value to c variable, but the first one is more expensive to CPU
+        # self.c = numpy.linalg.norm(numpy.matmul(self.get_transpose_h(), self.H), ord=2)
+        self.c = numpy.float64('8.418007254936936e-08')
 
     def get_transpose_h(self):
         if self.load_transversal_matrix:

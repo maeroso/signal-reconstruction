@@ -15,10 +15,11 @@ class CgneThread(Thread):
         super().__init__()
         self.id = identification
         self.global_data = global_data
-        self.signal = g
+        self.signal_array = g
 
         resource_lock(minimum_free_memory=-1,
-                      cpu_lock_warning_message="Unable to launch the thread, CPU load greater than 90%",
+                      cpu_lock_warning_message="Unable to launch the thread " + str(
+                          self.id) + ", CPU load greater than 90%",
                       maximum_cpu_load=90)
 
         self.start()
@@ -36,11 +37,13 @@ class CgneThread(Thread):
 
         best_try_error = 10
 
-        f_old = numpy.zeros_like(numpy.matmul(self.global_data.get_transpose_h(), self.signal))
+        f_old = numpy.zeros((3600,), dtype=numpy.float64)
 
         best_try = numpy.zeros_like(f_old)
 
-        r_old = numpy.subtract(self.signal, numpy.matmul(self.global_data.H, f_old))
+        r_old = numpy.subtract(self.signal_array,
+                               numpy.matmul(self.global_data.H, f_old)
+                               )
 
         p_old = numpy.matmul(self.global_data.get_transpose_h(), r_old)
 
@@ -48,18 +51,37 @@ class CgneThread(Thread):
 
             loop_counter = counter
 
-            a_i = numpy.divide(numpy.matmul(r_old.transpose(), r_old, dtype=float),
-                               numpy.matmul(p_old.transpose(), p_old))
+            a_i = numpy.divide(
+                numpy.matmul(r_old.transpose(), r_old, dtype=float),
+                numpy.matmul(p_old.transpose(), p_old)
+            )
 
-            f_next = numpy.add(f_old, numpy.multiply(p_old, a_i))
+            f_next = numpy.add(f_old,
+                               numpy.multiply(p_old, a_i)
+                               )
 
-            r_next = numpy.subtract(r_old, numpy.multiply(numpy.matmul(self.global_data.H, p_old), a_i))
+            r_next = numpy.subtract(r_old,
+                                    numpy.multiply(
+                                        numpy.matmul(self.global_data.H, p_old), a_i
+                                    )
+                                    )
 
-            beta = numpy.divide(numpy.matmul(r_next.transpose(), r_next), numpy.matmul(r_old.transpose(), r_old))
+            beta = numpy.divide(
+                numpy.matmul(r_next.transpose(), r_next),
+                numpy.matmul(r_old.transpose(), r_old)
+            )
 
-            p_next = numpy.matmul(self.global_data.get_transpose_h(), r_next) + numpy.multiply(p_old, beta)
+            p_next = numpy.add(
+                numpy.matmul(self.global_data.get_transpose_h(), r_next),
+                numpy.multiply(p_old, beta)
+            )
 
-            error = numpy.absolute(numpy.subtract(numpy.linalg.norm(r_next, ord=2), numpy.linalg.norm(r_old, ord=2)))
+            error = numpy.absolute(
+                numpy.subtract(
+                    numpy.linalg.norm(r_next, ord=2),
+                    numpy.linalg.norm(r_old, ord=2)
+                )
+            )
 
             if error < best_try_error:
                 best_try = f_next
