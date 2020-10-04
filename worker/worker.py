@@ -1,36 +1,34 @@
-# To add a new cell, type ''
-# To add a new markdown cell, type ' [markdown]'
-
 import json
-import sys
-from random import seed, random
 
 import numpy
 import pika
 
-from cgne_thread import CgneThread
-from constants import Constants
-from fista_thread import FISTAThread
-from global_data import GlobalData
+from controller.cgne_thread import CgneThread
+from controller.fista_thread import FISTAThread
+from model.constants import Constants
+from utils.global_data import GlobalData
+from controller.resource_controller_thread import ResourceControllerThread
+
+from utils.thread_safe_tools import ThreadSafeTools
 
 
 class Worker:
 
-    def worker_consume_queue(self, ch, method, properties, body):
-        sys.stdout.write(" [X] Consuming worker queue\n")
+    def worker_consume_queue(self, ch, method, properties, body) -> None:
+        ThreadSafeTools.print(" [X] Consuming worker queue\n")
 
         decoded = body.decode()
 
         json_message = json.loads(decoded)
 
         if json_message['algorithmType'] == self.constants.cgne_algorithm_id:
-            CgneThread(random(), self.global_data, numpy.array(json_message['signalArray']))
+            CgneThread(self.global_data, numpy.array(json_message['signalArray']), self.resource_controller)
 
         else:
-            FISTAThread(random(), self.global_data, numpy.array(json_message['signalArray']))
+            FISTAThread(self.global_data, numpy.array(json_message['signalArray']), self.resource_controller)
 
         ch.basic_ack(delivery_tag=method.delivery_tag)
-        sys.stdout.write(' [*] Waiting for messages\n')
+        ThreadSafeTools.print(' [*] Waiting for messages\n')
 
     def __init__(self):
 
@@ -38,9 +36,9 @@ class Worker:
 
         self.global_data = GlobalData()
 
-        seed(1)
+        self.resource_controller = ResourceControllerThread()
 
-        sys.stdout.write(' [*] Opening communication channel\n')
+        ThreadSafeTools.print(' [*] Opening communication channel\n')
 
         self.connection = pika.BlockingConnection(
             pika.ConnectionParameters(host='localhost'))
@@ -48,7 +46,7 @@ class Worker:
 
         self.channel.queue_declare(queue=self.constants.worker_name_queue, durable=True)
 
-        sys.stdout.write(' [*] Waiting for messages\n')
+        ThreadSafeTools.print(' [*] Waiting for messages\n')
 
         self.channel.basic_qos(prefetch_count=1)
 
