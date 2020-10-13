@@ -5,20 +5,12 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "type": "node",
-      "request": "attach",
-      "protocol": "inspector",
-      "restart": true,
-      "name": "Debug backend",
-      "skipFiles": ["<node_internals>/**"]
-    },
-    {
+      "name": "Lauch frontend debugger",
       "type": "firefox",
       "request": "launch",
       "reAttach": true,
-      "name": "Debugger frontend",
       "url": "http://localhost:3000",
-      "webRoot": "${workspaceFolder}"
+      "webRoot": "${workspaceFolder}/client"
     }
   ]
 }
