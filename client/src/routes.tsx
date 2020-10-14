@@ -1,6 +1,6 @@
 import React from 'react'
 import { BrowserRouter, Route, Switch } from 'react-router-dom'
-import MainPage from './pages/MainPage/index'
+import MainPage from './pages/MainPage'
 
 const Routes: React.FC = () => {
   return (

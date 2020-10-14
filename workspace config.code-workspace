@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "client"
+		},
+		{
+			"path": "backend"
+		},
+		{
+			"path": "worker"
+		}
+	]
+}
