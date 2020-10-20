@@ -9,9 +9,9 @@ export const GlobalStyle = createGlobalStyle`
     }
 
     body {
-        background-color: #F5f5f5;
+        background-color: #0f0f05;
         font-size: 14px;
-        color: #333;
-        font-family: sans-serif;        
+        color: #fff;
+        font-family: 'Ubuntu', sans-serif;      
     }
 `;
