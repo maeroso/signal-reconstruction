@@ -1,15 +1,15 @@
 import React from 'react'
 import { HeaderMenuBarContainer, OpenAsideMenuBarButton } from './styles'
-import { RiMenuUnfoldLine } from 'react-icons/ri'
+import { FiRadio } from 'react-icons/fi'
 
 const HeaderMenuBar: React.FC = () => {
   return (
     <HeaderMenuBarContainer>
       <OpenAsideMenuBarButton>
-        <RiMenuUnfoldLine />
+        <FiRadio />
       </OpenAsideMenuBarButton>
 
-      <h1>Olá</h1>
+      <span>Signal Reconstruction</span>
     </HeaderMenuBarContainer>
   )
 }

@@ -2,10 +2,13 @@ import styled from "styled-components";
 
 export const HeaderMenuBarContainer = styled.header`
   width: 100vw;
-  height: auto;
+  height: 40px;
   max-height: 40px;
 
-  background-color: #087f8c;
+  font-weight: 300;
+  font-size: 20px;
+
+  background: linear-gradient(90deg, rgba(34, 188, 151, 0.62) 19.62%, rgba(34, 188, 151, 0) 80.38%);
 
   display: flex;
   align-items: center;
@@ -15,17 +18,15 @@ export const HeaderMenuBarContainer = styled.header`
 `;
 
 export const OpenAsideMenuBarButton = styled.button`
-  background-color: #087f8c;
-  height: 40px;
-  width: 40px;
+  background-color: transparent;
+  font-size: 50px;
+  margin-bottom: 10px;
+
+  color: #fff;
 
   border: none;
 
   transition: background-color 0.2s;
-
-  :hover {
-    background-color: #076974;
-  }
 
   * {
     height: 60%;
