@@ -9,7 +9,7 @@ export const GlobalStyle = createGlobalStyle`
     }
 
     body {
-        background-color: #0f0f05;
+        background-color: #222;
         font-size: 14px;
         color: #fff;
         font-family: 'Ubuntu', sans-serif;      
