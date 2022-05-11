@@ -1,12 +1,11 @@
 files/H-1/
+
 __pycache__/
-
-worker/.idea/
-
-client/.idea/
-
-backend/.idea/
 
 backend/node_modules/
 
 worker/images/
+
+/venv/
+
+/.idea
