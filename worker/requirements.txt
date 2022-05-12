@@ -4,3 +4,6 @@ psutil
 pika
 opencv-python
 Pillow
+fastparquet
+pyarrow
+setuptools
