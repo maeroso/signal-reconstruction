@@ -12,6 +12,10 @@ app.use(cors());
 app.use(bodyParser.json({limit: "50mb"}));
 app.use(bodyParser.urlencoded({limit: "50mb", extended: true}));
 
+const auth = require("./controllers/auth");
+
+app.use('/auth', auth)
+
 app.post("/upload", (req, res) => {
     const {g, alg} = req.body;
 

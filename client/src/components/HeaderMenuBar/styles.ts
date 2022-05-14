@@ -1,14 +1,15 @@
 import styled from "styled-components";
 
 export const HeaderMenuBarContainer = styled.header`
+  position: relative;
   width: 100vw;
-  height: 40px;
-  max-height: 40px;
+  height: 30px;
+  max-height: 30px;
 
-  font-weight: 300;
-  font-size: 20px;
+  font-weight: 800;
+  font-size: 12px;
 
-  background: linear-gradient(90deg, rgba(34, 188, 151, 0.62) 19.62%, rgba(34, 188, 151, 0) 80.38%);
+  background: #94ce;
 
   display: flex;
   align-items: center;
@@ -33,3 +34,50 @@ export const OpenAsideMenuBarButton = styled.button`
     width: 60%;
   }
 `;
+
+export const MenuContainer = styled.section`
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+
+  align-items: center;
+
+  margin-left: 40px;
+`
+
+export const ActiveItem = styled.div`
+  background-color: rgba(196, 196, 196, 0.5);
+  padding: 10px;
+  cursor: pointer;
+  margin: 0 5px 10px 5px;
+  border-radius: 5px;
+  font-size: 13px;
+  font-weight: 500;
+`
+
+export const Item = styled.div`
+  padding: 10px;
+  cursor: pointer;
+  margin-bottom: 10px;
+  font-size: 13px;
+  font-weight: 400;
+`;
+
+export const UserButton = styled.button`
+  position: absolute;
+  right: 10px;
+  background: transparent;
+  height: 30px;
+  font-size: 12px;
+`
+
+export const UserMenu = styled.div`
+  position: absolute;
+  top: 35px;
+  right: 10px;
+  background: #fff;
+  width: 270px;
+  height: 150px;
+  border-radius: 2px;
+  box-shadow: 1px 1px 1px rgba(55, 55, 55, 0.5);
+`

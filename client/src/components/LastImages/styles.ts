@@ -12,7 +12,7 @@ export const Container = styled.div`
 export const ImageContainer = styled.div`
     flex: 0.25;
     height: 200px;
-    background-color: #111;
+    background-color: #e1e1e1;
     margin: 10px;
     border-radius: 5px;
 `

@@ -10,7 +10,7 @@ export const Container = styled.div`
 
 export const SendButton = styled.button`
     border: none;
-    background: rgba(34, 188, 151, 0.24);
+    background: #95cf;
     border-radius: 5px;
     color: #fff;
     padding: 10px;
