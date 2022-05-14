@@ -4,8 +4,8 @@ from threading import Condition
 
 import psutil
 
-from model.solicitation_resource_access_container import SolicitationResourceAccessContainer
-from utils.thread_safe_tools import ThreadSafeTools
+from ..model.solicitation_resource_access_container import SolicitationResourceAccessContainer
+from ..utils.thread_safe_tools import ThreadSafeTools
 
 
 class ResourceControllerThread(Thread):

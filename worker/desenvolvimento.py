@@ -3,6 +3,7 @@ import numpy
 import cv2
 from PIL import Image
 from os.path import exists
+import uuid
 
 
 class CGNR():
@@ -77,7 +78,7 @@ class CGNR():
         normalized = cv2.normalize(src=reshape, alpha=0, beta=255, dst=numpy.zeros_like(reshape),
                                    norm_type=cv2.NORM_MINMAX)
         first_image = Image.fromarray(numpy.uint8(normalized.transpose()), mode='L')
-        first_image.save(fp=f'images/image numero {self.__contador}.bmp')
+        first_image.save(fp=f'images/{str(uuid.uuid4())}.bmp')
         print(
             f"Alguns dados sobre a imagem gerada:\n"
             f"\tNúmero de iterações: {n_iteracao}\n"
