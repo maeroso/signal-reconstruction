@@ -3,13 +3,12 @@ import json
 import numpy
 import pika
 
-from controller.cgne_thread import CgneThread
-from controller.fista_thread import FISTAThread
-from model.constants import Constants
-from utils.global_data import GlobalData
-from controller.resource_controller_thread import ResourceControllerThread
-
-from utils.thread_safe_tools import ThreadSafeTools
+from .utils.thread_safe_tools import ThreadSafeTools
+from .controller.cgne_thread import CgneThread
+from .controller.fista_thread import FISTAThread
+from .controller.resource_controller_thread import ResourceControllerThread
+from .model.constants import Constants
+from .utils.global_data import GlobalData
 
 
 class Worker:

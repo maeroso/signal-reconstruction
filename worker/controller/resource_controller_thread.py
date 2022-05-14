@@ -1,6 +1,6 @@
 from queue import Queue
-from threading import Thread
 from threading import Condition
+from threading import Thread
 
 import psutil
 

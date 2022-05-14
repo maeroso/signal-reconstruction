@@ -1,9 +1,10 @@
-from pandas import read_csv, DataFrame, read_pickle
-import numpy
-import cv2
-from PIL import Image
-from os.path import exists
 import uuid
+from os.path import exists
+
+import cv2
+import numpy
+from PIL import Image
+from pandas import read_csv, DataFrame, read_pickle
 
 
 class CGNR():

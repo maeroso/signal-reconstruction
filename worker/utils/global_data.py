@@ -2,7 +2,7 @@ import numpy
 import pandas
 import psutil
 
-from utils.thread_safe_tools import ThreadSafeTools
+from ..utils.thread_safe_tools import ThreadSafeTools
 
 
 class GlobalData:

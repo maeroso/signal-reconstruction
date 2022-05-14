@@ -5,10 +5,10 @@ import cv2
 import numpy
 from PIL import Image
 
-from ..utils.global_data import GlobalData
-from ..utils.thread_safe_tools import ThreadSafeTools
 from ..controller.resource_controller_thread import ResourceControllerThread
 from ..model.solicitation_resource_access_container import SolicitationResourceAccessContainer
+from ..utils.global_data import GlobalData
+from ..utils.thread_safe_tools import ThreadSafeTools
 
 
 class CgneThread(Thread):
