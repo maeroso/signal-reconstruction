@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { HeaderMenuBarContainer, OpenAsideMenuBarButton, MenuContainer, ActiveItem, Item, UserButton, UserMenu } from "./styles";
 import { GiUltrasound } from "react-icons/gi";
+import { RiLogoutBoxRLine } from 'react-icons/ri'
 import { menu } from "./menu";
 import { useUser } from "../../userContext";
 import { useHistory } from "react-router-dom";
@@ -78,13 +79,20 @@ const LogoutButton: React.FC = () => {
 
   return (
     <button style={{
-      backgroundColor: 'darkred',
-      color: '#fff',
+      backgroundColor: '#ed7b8a',
+      color: 'white',
+      borderTop: '1px solid darkred',
       position: 'absolute',
       bottom: 0,
       left: 0,
-      right: 0
+      right: -1,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center"
     }} onClick={ handleLogout }>
+      <RiLogoutBoxRLine style={{
+        margin: '0 10px 0 0'
+      }} />
       Logout
     </button>
   )

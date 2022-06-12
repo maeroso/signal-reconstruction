@@ -33,7 +33,7 @@ app.post("/upload", (req, res) => {
 
     const queue = "worker"
 
-    amqp.connect("amqp://localhost", function (error0, connection) {
+    amqp.connect("amqp://0.0.0.0", function (error0, connection) {
         if (error0) {
             throw error0;
         }

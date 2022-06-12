@@ -77,7 +77,7 @@ export const UserMenu = styled.div`
   right: 10px;
   background: #fff;
   width: 270px;
-  height: 150px;
+  height: 100px;
   border-radius: 2px;
-  box-shadow: 1px 1px 1px rgba(55, 55, 55, 0.5);
+  box-shadow: 1px 2px 2px rgba(55, 55, 55, 0.5);
 `

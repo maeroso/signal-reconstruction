@@ -10,7 +10,7 @@ class GlobalData:
     def __init__(self):
         ThreadSafeTools.print(" [*] Loading global data. Wait!\n")
 
-        self.H = pandas.read_csv('../files/H-1/H-1.txt',
+        self.H = pandas.read_csv('../files/H-1/H-1.csv',
                                  header=None, dtype=float).to_numpy()
         self.minimal_error = numpy.float64('1.0e-4')
 
