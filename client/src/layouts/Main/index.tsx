@@ -19,7 +19,6 @@ const MainLayout: React.FC = () => {
           </Switch>
         </BrowserRouter>
       </ContentContainer>
-      <AsideMenuBar />
     </div>
   )
 }

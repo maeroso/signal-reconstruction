@@ -5,7 +5,7 @@ import { FiUploadCloud } from 'react-icons/fi'
 const SendSignal: React.FC = () => {
     return (
         <Container>
-            <FiUploadCloud size={80} />
+            <FiUploadCloud size={60} />
             <SendButton>Enviar</SendButton>
         </Container>
     )
