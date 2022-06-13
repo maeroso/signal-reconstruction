@@ -1,25 +1,43 @@
 from queue import Queue
-from threading import Condition
+from threading import Condition, Lock
 from threading import Thread
 
 import psutil
 
-from ..model.solicitation_resource_access_container import SolicitationResourceAccessContainer
-from ..utils.thread_safe_tools import ThreadSafeTools
+from model.resource_request import ResourceRequest
+from utils.thread_safe_tools import ThreadSafeTools
 
 
-class ResourceControllerThread(Thread):
+class SingletonMeta(type):
+    _instances = {}
+    _lock: Lock = Lock()
+
+    def __call__(cls, *args, **kwargs):
+        with cls._lock:
+            if cls not in cls._instances:
+                instance = super().__call__(*args, **kwargs)
+                cls._instances[cls] = instance
+        return cls._instances[cls]
+
+
+class Singleton(metaclass=SingletonMeta, Thread):
+
+    def __init__(self):
+        super().__init__(name="ResourceAccessController")
+
+
+class ResourceAccess(Singleton):
+    __fifo_solicitation_resource = Queue()
+    __fifo_semaphore = Condition()
 
     def __init__(self):
         super().__init__()
-        self.fifo_solicitation_resource = Queue()
-        self.fifo_semaphore = Condition()
         self.start()
 
-    def request_resource(self, request: SolicitationResourceAccessContainer) -> None:
-        with self.fifo_semaphore:
-            self.fifo_solicitation_resource.put(item=request)
-            if not self.fifo_solicitation_resource.empty():
+    def request_resource(self, request: ResourceRequest) -> None:
+        with self.__fifo_semaphore:
+            self.__fifo_solicitation_resource.put(item=request)
+            if not self.__fifo_solicitation_resource.empty():
                 ThreadSafeTools.print(" [*] Thread " + str(request.identification) + " are waiting  some resources\n")
         request.thread_event.wait()
 
@@ -52,7 +70,7 @@ class ResourceControllerThread(Thread):
     def run(self) -> None:
 
         while True:
-            first_queue_request: SolicitationResourceAccessContainer = self.fifo_solicitation_resource.get(block=True)
+            first_queue_request: ResourceRequest = self.__fifo_solicitation_resource.get(block=True)
 
             self.__resource_lock(
                 minimum_free_memory=first_queue_request.minimum_free_memory,

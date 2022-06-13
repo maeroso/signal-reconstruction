@@ -7,3 +7,6 @@ Pillow
 fastparquet
 pyarrow
 setuptools
+pydantic
+python-dotenv
+Deliver
