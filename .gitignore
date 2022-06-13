@@ -9,3 +9,4 @@ worker/images/
 /venv/
 
 /.idea
+worker/.idea/
