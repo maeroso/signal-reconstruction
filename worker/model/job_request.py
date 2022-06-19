@@ -5,7 +5,7 @@ from utils.enums.algorithms import Algorithms
 from utils.enums.image_size_options import ImageSizeOptions
 
 
-class Message(BaseModel):
+class JobRequest(BaseModel):
     index: int
     algorithm: Algorithms
     signal_array: numpy.ndarray
