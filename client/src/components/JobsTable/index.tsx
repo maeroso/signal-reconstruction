@@ -1,27 +1,25 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios, { AxiosResponse } from "axios";
+import { useUser } from '../../userContext'
 
 interface GridColumn {
   field: string;
   headerName: string;
-  width?: number;
 }
 
 const columns: Array<GridColumn> = [
-  { field: "id", headerName: "ID", width: 90 },
+  { field: "id", headerName: "ID" },
   {
     field: "userName",
     headerName: "Nome do usuário",
-    width: 150,
   },
   {
     field: "algorithm",
     headerName: "Algoritmo",
-    width: 150,
   },
   {
     field: "status",
     headerName: "Status",
-    width: 150,
   },
   {
     field: "startTime",
@@ -49,48 +47,10 @@ const columns: Array<GridColumn> = [
   },
 ];
 
-const rows = [
-  {
-    id: 1,
-    userName: "Fernando Fernandes",
-    algorithm: "CGNE",
-    status: "Processado",
-    startTime: "12/06/2022 04:44",
-    endTime: "12/06/2022 04:46",
-    imageSize: "30x30",
-    increase: 3,
-    iteration: 15,
-    image:
-      "https://www.google.com/imgres?imgurl=https%3A%2F%2Fimages.ctfassets.net%2Fhrltx12pl8hq%2F7yQR5uJhwEkRfjwMFJ7bUK%2Fdc52a0913e8ff8b5c276177890eb0129%2Foffset_comp_772626-opt.jpg%3Ffit%3Dfill%26w%3D800%26h%3D300&imgrefurl=https%3A%2F%2Fwww.shutterstock.com%2Fpt%2Ffile-converter&tbnid=MOAYgJU89sFKnM&vet=12ahUKEwjaq96hvKf4AhUTupUCHZN-BtUQMygCegUIARDZAQ..i&docid=f4vxGaCvDKAjnM&w=800&h=300&q=image&ved=2ahUKEwjaq96hvKf4AhUTupUCHZN-BtUQMygCegUIARDZAQ",
-  },
-  {
-    id: 2,
-    userName: "Fernando Fernandes",
-    algorithm: "CGNE",
-    status: "Processado",
-    startTime: "12/06/2022 04:46",
-    endTime: "12/06/2022 04:50",
-    imageSize: "60x60",
-    increase: 2,
-    iteration: 27,
-    image:
-      "https://www.google.com/imgres?imgurl=https%3A%2F%2Fimages.ctfassets.net%2Fhrltx12pl8hq%2F7yQR5uJhwEkRfjwMFJ7bUK%2Fdc52a0913e8ff8b5c276177890eb0129%2Foffset_comp_772626-opt.jpg%3Ffit%3Dfill%26w%3D800%26h%3D300&imgrefurl=https%3A%2F%2Fwww.shutterstock.com%2Fpt%2Ffile-converter&tbnid=MOAYgJU89sFKnM&vet=12ahUKEwjaq96hvKf4AhUTupUCHZN-BtUQMygCegUIARDZAQ..i&docid=f4vxGaCvDKAjnM&w=800&h=300&q=image&ved=2ahUKEwjaq96hvKf4AhUTupUCHZN-BtUQMygCegUIARDZAQ",
-  },
-];
-
 interface DataGridProps {
   columns: Array<GridColumn>;
   rows: Array<any>;
 }
-
-/* const Header: React.FC<Array<GridColumn>> = (props: Array<GridColumn>) => {
-  const columns: Array<GridColumn> = props
-  const headers = []
-  for(let column of columns) {
-    headers.push(<th>{ column.headerName }</th>)
-  }
-  return headers
-} */
 
 const handleOpenImage = (image: string) => {
   window.open(image)
@@ -118,9 +78,9 @@ const DataGrid: React.FC<DataGridProps> = (props: DataGridProps) => {
   }
 
   let data = [];
-  for (let row of rows) {
+  for (let row of props.rows) {
     data.push(
-      <tr>
+      <tr key={'tr-' + row.id}>
         <td
           style={{
             border: "1px solid #f1f1f1",
@@ -167,7 +127,7 @@ const DataGrid: React.FC<DataGridProps> = (props: DataGridProps) => {
             padding: "10px",
             textAlign: "center",
           }}
-          key={row.startTime + "-" + row.id}
+          key={row.startTime + "st-" + row.id}
         >
           {row.startTime}
         </td>
@@ -177,7 +137,7 @@ const DataGrid: React.FC<DataGridProps> = (props: DataGridProps) => {
             padding: "10px",
             textAlign: "center",
           }}
-          key={row.endTime + "-" + row.id}
+          key={row.endTime + "et-" + row.id}
         >
           {row.endTime}
         </td>
@@ -217,7 +177,7 @@ const DataGrid: React.FC<DataGridProps> = (props: DataGridProps) => {
             padding: "10px",
             textAlign: "center",
           }}
-          key={row.iteration + "-" + row.id}
+          key={"btn-" + row.id}
         >
           <button
             style={{
@@ -227,7 +187,7 @@ const DataGrid: React.FC<DataGridProps> = (props: DataGridProps) => {
               borderRadius: "5px",
               padding: "5px",
             }}
-            onClick={ ()=> { handleOpenImage(row.image) } }
+            onClick={() => { handleOpenImage(row.image) }}
           >
             Visualizar
           </button>
@@ -251,7 +211,73 @@ const DataGrid: React.FC<DataGridProps> = (props: DataGridProps) => {
   );
 };
 
+const status: any = {
+  1: 'Na fila',
+  2: 'Processando',
+  3: 'Processado'
+}
+
+const algorithm: any = {
+  1: 'CGNE',
+  2: 'CGNR',
+  3: 'Fista'
+}
+
+const imageSize: any = {
+  30: '30x30',
+  60: '60x60',
+}
+
+interface GridRow {
+  id: number,
+  userName: string,
+  algorithm: string,
+  status: string,
+  startTime: string,
+  endTime: string,
+  imageSize: string,
+  increase: number,
+  iteration: number,
+  image: string,
+}
+
+const fetchJobs = async (email: string, userName: string) => {
+  const jobs: Array<GridRow> = []
+  const response = await axios.get("http://localhost:3333/jobs/" + email)
+  if (response.data.jobs) {
+    response.data.jobs.forEach((item: any) => {
+      jobs.push({
+        id: item.id,
+        userName: userName,
+        algorithm: algorithm[item.algorithm],
+        status: status[item.status],
+        startTime: new Date(1655024068544).toLocaleString(),
+        endTime: new Date(1655024068544).toLocaleString(),
+        imageSize: imageSize[item.pixelSize],
+        increase: item.signalIncreaseRep,
+        iteration: item.iterations,
+        image: 'http://localhost:3333/images/' + item.id + '.bmp',
+      })
+    })
+    return jobs
+  }
+}
+
+const firstJobsFetch = async (email: string, userName: string, setJobs: any) => {
+  const newJobs: any = await fetchJobs(email, userName);
+  setJobs(newJobs)
+} 
+
 const JobsTable: React.FC = () => {
+  const { email, userName } = useUser();
+  const { jobs, setJobs } = useUser()
+
+  //firstJobsFetch(email, userName, setJobs)
+  setInterval(async () => {
+    const newJobs: any = await fetchJobs(email, userName);
+    setJobs(newJobs)
+  }, 20000);
+
   return (
     <div
       style={{
@@ -263,7 +289,7 @@ const JobsTable: React.FC = () => {
         backgroundColor: "#fff",
       }}
     >
-      <DataGrid columns={columns} rows={rows} />
+      <DataGrid columns={columns} rows={jobs} />
     </div>
   );
 };

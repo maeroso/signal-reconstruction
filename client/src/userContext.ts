@@ -6,7 +6,9 @@ interface UserContextType {
   email: string,
   setEmail: (email: string) => void
   isLoggedIn: boolean,
-  setIsLoggedIn: (isLoggedIn: boolean) => void
+  setIsLoggedIn: (isLoggedIn: boolean) => void,
+  jobs: any,
+  setJobs: (jobs: any) => void
 }
 
 export const UserContext = createContext<UserContextType>(
@@ -16,7 +18,9 @@ export const UserContext = createContext<UserContextType>(
     email: '',
     setEmail: email => console.warn('no email provider'),
     isLoggedIn: false,
-    setIsLoggedIn: isLoggedIn => console.warn('no user is logged provider')
+    setIsLoggedIn: isLoggedIn => console.warn('no user is logged provider'),
+    jobs: [],
+    setJobs: jobs => console.warn('no user is logged provider')
   }
 );
 export const useUser = () => useContext(UserContext);

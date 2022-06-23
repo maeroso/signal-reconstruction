@@ -8,6 +8,7 @@ const App: React.FC = () => {
   const [userName, setUserName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [jobs, setJobs] = useState<any>([]);
 
   const checkUserIsLoggedIn = () => {
     const userStorage = localStorage.getItem('user')
@@ -16,6 +17,7 @@ const App: React.FC = () => {
     setUserName(userInfo.name ? userInfo.name : '')
     setEmail(userInfo.email ? userInfo.email : '')
     setIsLoggedIn(userInfo.email ? true : false)
+    setJobs([])
   }
 
   useEffect(() => {
@@ -31,6 +33,8 @@ const App: React.FC = () => {
         setEmail,
         isLoggedIn,
         setIsLoggedIn,
+        jobs,
+        setJobs
       }}
     >
       <GlobalStyle />
