@@ -8,7 +8,8 @@ import { useHistory } from "react-router-dom";
 
 const HeaderMenuBar: React.FC = () => {
   const [menuItems, setMenuItems] = useState(menu);
-  const { userName } = useUser()
+  const { userName, email } = useUser()
+  const [userMenuState, setUserMenuState] = useState<boolean>(false)
 
   function handleMenuClick(clickedItem: any) {
     menuItems.map((item) => {
@@ -20,6 +21,10 @@ const HeaderMenuBar: React.FC = () => {
     });
 
     setMenuItems([...menuItems]);
+  }
+
+  const handleUserMenuOpening = () => {
+    setUserMenuState(!userMenuState)
   }
 
   return (
@@ -57,12 +62,17 @@ const HeaderMenuBar: React.FC = () => {
           }
         })}
       </MenuContainer>
-      <UserButton>
+      <UserButton onClick={ handleUserMenuOpening }>
         { userName }
       </UserButton>
-      <UserMenu>
-        <LogoutButton />
-      </UserMenu>
+      { userMenuState && 
+        <UserMenu>
+          <span style={{ color: '#333', margin: '5px' }}>
+            E-mail: { email }
+          </span>
+          <LogoutButton />
+        </UserMenu>
+      }
     </HeaderMenuBarContainer>
   );
 };
@@ -79,13 +89,13 @@ const LogoutButton: React.FC = () => {
 
   return (
     <button style={{
-      backgroundColor: '#ed7b8a',
-      color: 'white',
-      borderTop: '1px solid darkred',
+      backgroundColor: '#ffff',
+      color: 'red',
+      borderTop: '1px solid #e1e1e1',
       position: 'absolute',
       bottom: 0,
-      left: 0,
-      right: -1,
+      left: -2,
+      right: -2,
       display: "flex",
       alignItems: "center",
       justifyContent: "center"

@@ -6,9 +6,9 @@ export const menu = [
     icon: FiHome,
     active: true
   },
-  {
+  /* {
     name: 'Arquivos',
     icon: FiArchive,
     active: false
-  }
+  } */
 ]
