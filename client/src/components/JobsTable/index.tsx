@@ -179,7 +179,7 @@ const DataGrid: React.FC<DataGridProps> = (props: DataGridProps) => {
           }}
           key={"btn-" + row.id}
         >
-          { row.status === 3 &&
+          { row.status === 'Processado' &&
           <button
             style={{
               backgroundColor: "#95cf",
