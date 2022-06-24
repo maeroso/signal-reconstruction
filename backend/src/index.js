@@ -49,7 +49,7 @@ app.post("/upload", async (req, res) => {
   }
 
   try {
-    await knex("jobs").insert({
+    const id = await knex("jobs").insert({
       userEmail: email.toLowerCase(),
       originalSignalName: fileName,
       algorithm: alg,
@@ -58,41 +58,42 @@ app.post("/upload", async (req, res) => {
       pixelSize: imageSize,
       createdAt: new Date(),
       updatedAt: new Date(),
+    }).returning('id');
+    const queue = "worker";
+
+    amqp.connect("amqp://0.0.0.0", function (error0, connection) {
+      if (error0) {
+        throw error0;
+      }
+      connection.createChannel(function (error1, channel) {
+        if (error1) {
+          throw error1;
+        }
+
+        const msg = {
+          index: id[0],
+          algorithm: alg,
+          signal_array: g,
+          image_size: imageSize
+        };
+
+        channel.assertQueue(queue, {
+          durable: true,
+        });
+        channel.sendToQueue(queue, Buffer.from(JSON.stringify(msg)), {
+          persistent: true,
+        });
+        console.log(" [x] Sent '%s'", msg);
+        res.send(msg);
+      });
+      setTimeout(function () {
+        connection.close();
+      }, 500);
     });
     res.status(200).send({ message: "Sinal na fila de jobs" });
   } catch {
     res.status(500).send({ message: "Erro ao processar sinal" });
   }
-
-  /* const queue = "worker";
-
-  amqp.connect("amqp://0.0.0.0", function (error0, connection) {
-    if (error0) {
-      throw error0;
-    }
-    connection.createChannel(function (error1, channel) {
-      if (error1) {
-        throw error1;
-      }
-
-      const msg = {
-        signalArray: g,
-        algorithmType: alg,
-      };
-
-      channel.assertQueue(queue, {
-        durable: true,
-      });
-      channel.sendToQueue(queue, Buffer.from(JSON.stringify(msg)), {
-        persistent: true,
-      });
-      // console.log(" [x] Sent '%s'", msg);
-      res.send(msg);
-    });
-    setTimeout(function () {
-      connection.close();
-    }, 500);
-  }); */
 });
 
 app.listen(port, () => {
