@@ -179,6 +179,7 @@ const DataGrid: React.FC<DataGridProps> = (props: DataGridProps) => {
           }}
           key={"btn-" + row.id}
         >
+          { row.status === 3 &&
           <button
             style={{
               backgroundColor: "#95cf",
@@ -190,7 +191,7 @@ const DataGrid: React.FC<DataGridProps> = (props: DataGridProps) => {
             onClick={() => { handleOpenImage(row.image) }}
           >
             Visualizar
-          </button>
+          </button> }
         </td>
       </tr>
     );
@@ -251,8 +252,8 @@ const fetchJobs = async (email: string, userName: string) => {
         userName: userName,
         algorithm: algorithm[item.algorithm],
         status: status[item.status],
-        startTime: new Date(1655024068544).toLocaleString(),
-        endTime: new Date(1655024068544).toLocaleString(),
+        startTime: item.startTime ? new Date(item.startTime).toLocaleString() : '',
+        endTime: item.endTime ? new Date(item.endTime).toLocaleString() : '',
         imageSize: imageSize[item.pixelSize],
         increase: item.signalIncreaseRep,
         iteration: item.iterations,
