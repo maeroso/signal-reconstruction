@@ -12,6 +12,10 @@ class FastIterativeShrinkageThresholdAlgorithm(GenericAlgorithm):
 
     def __init__(self, sinal: numpy.ndarray, image_size: ImageSizeOptions):
         super().__init__(sinal, image_size)
+        self.__c = None
+
+    def __enter__(self):
+        super(FastIterativeShrinkageThresholdAlgorithm, self).__enter__()
 
         self.__c = numpy.linalg.norm(
             numpy.matmul(
