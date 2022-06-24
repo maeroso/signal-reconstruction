@@ -4,7 +4,6 @@ import numpy
 from pandas import read_pickle
 
 from model.generic_algorithm import GenericAlgorithm
-from utils.enums.algorithms import Algorithms
 from utils.enums.image_size_options import ImageSizeOptions
 from utils.thread_safe_tools import ThreadSafeTools
 
@@ -14,12 +13,9 @@ class ConjugateGradientMethodNormalError(GenericAlgorithm):
     def __init__(self, sinal: numpy.ndarray, image_size: ImageSizeOptions):
         super().__init__(sinal, image_size)
 
-    @staticmethod
-    def factory_method(signal: numpy.ndarray, image_size: ImageSizeOptions,
-                       algorithm: Algorithms.CONJUGATE_GRADIENT_METHOD_NORMAL_ERROR) -> GenericAlgorithm:
-        return ConjugateGradientMethodNormalError(signal, image_size)
-
     def generate_image(self) -> Tuple[numpy.ndarray, int]:
+        super(ConjugateGradientMethodNormalError, self).generate_image()
+
         loop_maximum = 100
         loop_counter = 0
         f_next = 0

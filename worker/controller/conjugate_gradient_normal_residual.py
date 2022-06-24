@@ -4,7 +4,6 @@ import numpy
 from pandas import read_pickle
 
 from model.generic_algorithm import GenericAlgorithm
-from utils.enums.algorithms import Algorithms
 from utils.enums.image_size_options import ImageSizeOptions
 from utils.thread_safe_tools import ThreadSafeTools
 
@@ -14,12 +13,9 @@ class ConjugateGradientNormalResidual(GenericAlgorithm):
     def __init__(self, sinal: numpy.ndarray, image_size: ImageSizeOptions):
         super().__init__(sinal, image_size)
 
-    @staticmethod
-    def factory_method(signal: numpy.ndarray, image_size: ImageSizeOptions,
-                       algorithm: Algorithms.CONJUGATE_GRADIENT_NORMAL_RESIDUAL) -> GenericAlgorithm:
-        return ConjugateGradientNormalResidual(signal, image_size)
-
     def generate_image(self) -> Tuple[numpy.ndarray, int]:
+        super(ConjugateGradientNormalResidual, self).generate_image()
+
         f_old = numpy.zeros((pow(self.image_size.value, 2),), dtype=numpy.float64)
         r_old = numpy.subtract(self.signal_array, numpy.zeros(shape=(self.shape_matriz_h[0],)))
         z_old = numpy.matmul(read_pickle(filepath_or_buffer=self.matriz_ht_path).to_numpy(), r_old)

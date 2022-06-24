@@ -1,11 +1,9 @@
 import os
-from threading import Event
 from typing import Tuple
 
 import numpy
 from pandas import read_pickle
 
-from utils.enums.algorithms import Algorithms
 from utils.enums.file_name import FileName
 from utils.enums.image_size_options import ImageSizeOptions
 
@@ -13,11 +11,12 @@ from utils.enums.image_size_options import ImageSizeOptions
 class GenericAlgorithm:
     signal_array: numpy.ndarray
     image_size: ImageSizeOptions
-    free_resource_event: Event = Event()
     matriz_ht_path: str
     matriz_h_path: str
     shape_matriz_h: Tuple[int, int]
     erro_minimo: numpy.float64
+
+    ephemeral_matrix = numpy.ndarray
 
     def __init__(self, signal: numpy.ndarray, image_size: ImageSizeOptions):
         super().__init__()
@@ -25,8 +24,6 @@ class GenericAlgorithm:
         self.image_size = image_size
 
     def __enter__(self):
-        self.free_resource_event.clear()
-
         self.matriz_h_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
             '../static/',
@@ -38,6 +35,10 @@ class GenericAlgorithm:
             FileName.HT1_PICKLE.value if self.image_size == ImageSizeOptions.MEDIUM else FileName.HT2_PICKLE.value
         )
 
+        self.ephemeral_matrix = read_pickle(filepath_or_buffer=os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), '../static/', FileName.H1_PICKLE.value
+        )).to_numpy()
+
         self.shape_matriz_h = read_pickle(filepath_or_buffer=self.matriz_h_path).to_numpy().shape
 
         self.erro_minimo = numpy.float64('1.0e-4')
@@ -45,7 +46,6 @@ class GenericAlgorithm:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         del self.signal_array
-        # del self.free_resource_event
         del self.matriz_h_path
         del self.matriz_ht_path
         del self.shape_matriz_h
@@ -54,8 +54,4 @@ class GenericAlgorithm:
         del self
 
     def generate_image(self) -> Tuple[numpy.ndarray, int]:
-        raise NotImplementedError
-
-    @staticmethod
-    def factory_method(signal: numpy.ndarray, image_size: ImageSizeOptions, algorithm: Algorithms):
-        raise NotImplementedError
+        del self.ephemeral_matrix

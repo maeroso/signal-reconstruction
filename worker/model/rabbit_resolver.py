@@ -12,11 +12,12 @@ class RabbitResolver:
     queue: Method
 
     def __init__(self, queue_name: Queues, host_name: str = 'localhost', port_number: int = 5672,
-                 callback: callable = None):
+                 callback: callable = None, passive: bool = False):
         self.__queue_name = queue_name
         self.__host_name = host_name
         self.__port_number = port_number
         self.__consume_message_callback = callback
+        self.__passive = passive
 
     def __enter__(self):
         ThreadSafeTools.print(' [*] Opening connection\n')
@@ -27,7 +28,9 @@ class RabbitResolver:
 
         ThreadSafeTools.print(f' [*] Declaring queue: {self.__queue_name.value}\n')
         # TODO aumentar tempo de 'retry' na fila quando não receber o ACK
-        self.queue = self.channel.queue_declare(queue=self.__queue_name.value, durable=True)
+        self.queue = self.channel.queue_declare(
+            queue=self.__queue_name.value, durable=True, passive=self.__passive
+        )
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):

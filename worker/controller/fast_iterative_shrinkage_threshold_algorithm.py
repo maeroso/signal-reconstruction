@@ -4,7 +4,6 @@ import numpy
 from pandas import read_pickle
 
 from model.generic_algorithm import GenericAlgorithm
-from utils.enums.algorithms import Algorithms
 from utils.enums.image_size_options import ImageSizeOptions
 from utils.thread_safe_tools import ThreadSafeTools
 
@@ -27,11 +26,6 @@ class FastIterativeShrinkageThresholdAlgorithm(GenericAlgorithm):
         super(FastIterativeShrinkageThresholdAlgorithm, self).__exit__(exc_type, exc_val, exc_tb)
 
     @staticmethod
-    def factory_method(signal: numpy.ndarray, image_size: ImageSizeOptions,
-                       algorithm: Algorithms.FAST_ITERATIVE_SHRINKAGE_THRESHOLD_ALGORITHM) -> GenericAlgorithm:
-        return FastIterativeShrinkageThresholdAlgorithm(signal, image_size)
-
-    @staticmethod
     def s_function(signal, threshold) -> int:
         if signal >= 0:
             if signal - threshold < 0:
@@ -45,6 +39,7 @@ class FastIterativeShrinkageThresholdAlgorithm(GenericAlgorithm):
                 return signal + threshold
 
     def generate_image(self) -> Tuple[numpy.ndarray, int]:
+        super(FastIterativeShrinkageThresholdAlgorithm, self).generate_image()
 
         f_old = numpy.zeros((pow(self.image_size.value, 2),), dtype=numpy.float64)
         y_old = f_old
