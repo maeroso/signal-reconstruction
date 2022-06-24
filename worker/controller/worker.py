@@ -44,7 +44,7 @@ class Worker(Thread):
         interactions_count: int = 0
 
         requests.post(url=f'http://localhost:3333/job/{job_request.index}',
-                      json=ResultResponse(init_datetime=datetime.now(), status=Status.PROCESSING).json(
+                      data=ResultResponse(init_datetime=datetime.now(), status=Status.PROCESSING).dict(
                           exclude_unset=True))
         if job_request.algorithm == Algorithms.CONJUGATE_GRADIENT_NORMAL_RESIDUAL:
             with ConjugateGradientNormalResidual.factory_method(
@@ -68,7 +68,7 @@ class Worker(Thread):
                 self.load_sources.set()
                 computed_array, interactions_count = algorithm.generate_image()
 
-        image_shape = (job_request.value, job_request.value)
+        image_shape = (job_request.image_size, job_request.image_size)
 
         first_image = Image.fromarray(
             numpy.uint8(cv2.normalize(
@@ -85,7 +85,7 @@ class Worker(Thread):
                             f'{str(job_request.index)}.bmp'))
 
         requests.post(url=f'http://localhost:3333/job/{job_request.index}',
-                      json=ResultResponse(final_datetime=datetime.now(), status=Status.FINISHED,
+                      data=ResultResponse(final_datetime=datetime.now(), status=Status.FINISHED,
                                           interactions=interactions_count).json(
                           exclude_unset=True))
 

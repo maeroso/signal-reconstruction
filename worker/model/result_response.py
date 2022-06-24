@@ -11,3 +11,6 @@ class ResultResponse(BaseModel):
     final_datetime: Optional[datetime]
     interactions: Optional[int]
     status: Optional[Status]
+
+    class Config:
+        use_enum_values = True
