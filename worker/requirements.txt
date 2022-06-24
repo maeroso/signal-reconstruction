@@ -10,3 +10,4 @@ setuptools
 pydantic
 python-dotenv
 Deliver
+requests

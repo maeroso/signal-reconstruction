@@ -26,6 +26,7 @@ class RabbitResolver:
         self.channel = self.connection.channel()
 
         ThreadSafeTools.print(f' [*] Declaring queue: {self.__queue_name.value}\n')
+        # TODO aumentar tempo de 'retry' na fila quando não receber o ACK
         self.queue = self.channel.queue_declare(queue=self.__queue_name.value, durable=True)
         return self
 

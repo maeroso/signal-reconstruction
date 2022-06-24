@@ -1,9 +1,6 @@
-import os
-import uuid
+from typing import Tuple
 
-import cv2
 import numpy
-from PIL import Image
 from pandas import read_pickle
 
 from model.generic_algorithm import GenericAlgorithm
@@ -22,13 +19,13 @@ class ConjugateGradientMethodNormalError(GenericAlgorithm):
                        algorithm: Algorithms.CONJUGATE_GRADIENT_METHOD_NORMAL_ERROR) -> GenericAlgorithm:
         return ConjugateGradientMethodNormalError(signal, image_size)
 
-    def generate_image(self) -> Image:
+    def generate_image(self) -> Tuple[numpy.ndarray, int]:
         loop_maximum = 100
         loop_counter = 0
         f_next = 0
         error = 0
         best_try_error = 10
-        f_old = numpy.zeros((pow(self.image_size, 2), 1), dtype=numpy.float64)
+        f_old = numpy.zeros((pow(self.image_size, 2),), dtype=numpy.float64)
         best_try = numpy.zeros_like(f_old)
         r_old = numpy.subtract(self.signal_array,
                                numpy.matmul(read_pickle(filepath_or_buffer=self.matriz_h_path).to_numpy(), f_old))
@@ -76,18 +73,6 @@ class ConjugateGradientMethodNormalError(GenericAlgorithm):
             if error < self.erro_minimo:
                 break
 
-        image_shape = (self.image_size.value, self.image_size.value)
-
-        first_image = Image.fromarray(
-            numpy.uint8(cv2.normalize(
-                src=best_try.reshape(image_shape), alpha=0, beta=255,
-                dst=numpy.zeros_like(shape=image_shape), norm_type=cv2.NORM_MINMAX
-            ).transpose()), mode='L'
-        )
-
-        first_image.save(
-            fp=os.path.join(os.path.dirname(os.path.abspath(__file__)), '../images/', f'{str(uuid.uuid4())}.bmp'))
-
         ThreadSafeTools.print(
             f" [x] Alguns dados sobre a imagem gerada:\n" +
             f"\tNúmero de iterações: {loop_counter}\n" +
@@ -95,4 +80,4 @@ class ConjugateGradientMethodNormalError(GenericAlgorithm):
             f"\tUltima taxa de erro: {error}\n"
         )
 
-        return first_image
+        return best_try, loop_counter

@@ -3,7 +3,6 @@ from threading import Event
 from typing import Tuple
 
 import numpy
-from PIL import Image
 from pandas import read_pickle
 
 from utils.enums.algorithms import Algorithms
@@ -46,7 +45,7 @@ class GenericAlgorithm:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         del self.signal_array
-        del self.free_resource_event
+        # del self.free_resource_event
         del self.matriz_h_path
         del self.matriz_ht_path
         del self.shape_matriz_h
@@ -54,7 +53,7 @@ class GenericAlgorithm:
         del self.image_size
         del self
 
-    def generate_image(self) -> Image:
+    def generate_image(self) -> Tuple[numpy.ndarray, int]:
         raise NotImplementedError
 
     @staticmethod

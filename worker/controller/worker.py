@@ -1,13 +1,24 @@
+import os
+import uuid
+from datetime import datetime
 from threading import Thread, Event
 
+import cv2
+import numpy
+import requests as requests
+from PIL import Image
 from pika import BasicProperties
 from pika.adapters.blocking_connection import BlockingChannel
 
-from model.generic_algorithm import GenericAlgorithm
+from controller.conjugate_gradient_method_normal_error import ConjugateGradientMethodNormalError
+from controller.conjugate_gradient_normal_residual import ConjugateGradientNormalResidual
+from controller.fast_iterative_shrinkage_threshold_algorithm import FastIterativeShrinkageThresholdAlgorithm
 from model.job_request import JobRequest
 from model.rabbit_resolver import RabbitResolver
+from model.result_response import ResultResponse
+from utils.enums.algorithms import Algorithms
 from utils.enums.queues import Queues
-from utils.thread_safe_tools import ThreadSafeTools
+from utils.enums.status import Status
 
 
 class Worker(Thread):
@@ -23,18 +34,59 @@ class Worker(Thread):
             rabbit_resolver.start_consuming(thread_name=self.name)
 
     def consume_message(self, ch: BlockingChannel, method, properties: BasicProperties, body: bytes) -> None:
-        job_request = JobRequest.parse_raw(body.decode('utf-8'))
+        decoded_body = body.decode('utf-8')
 
-        ThreadSafeTools.print(f' [x] Received message: \n{job_request.json(ident=True)}\n')
+        job_request = JobRequest.parse_raw(decoded_body)
 
-        with GenericAlgorithm.factory_method(
-                signal=job_request.signal_array, image_size=job_request.image_size,
-                algorithm=job_request.algorithm
-        ) as algorithm:
-            self.load_sources.set()
-            image = algorithm.generate_image()
+        # ThreadSafeTools.print(f' [x] Received message: \n{job_request.json(ident=True)}\n')
 
-            # TODO send image to the back-end
-            # TODO compute generation time
+        computed_array: numpy.ndarray = numpy.zeros((pow(job_request.image_size.value, 2),), dtype=numpy.float64)
+        interactions_count: int = 0
+
+        requests.post(url=f'http://localhost:3333/job/{job_request.index}',
+                      json=ResultResponse(init_datetime=datetime.now(), status=Status.PROCESSING).json(
+                          exclude_unset=True))
+        if job_request.algorithm == Algorithms.CONJUGATE_GRADIENT_NORMAL_RESIDUAL:
+            with ConjugateGradientNormalResidual.factory_method(
+                    signal=job_request.signal_array, image_size=job_request.image_size,
+                    algorithm=job_request.algorithm
+            ) as algorithm:
+                self.load_sources.set()
+                computed_array, interactions_count = algorithm.generate_image()
+        elif job_request.algorithm == Algorithms.CONJUGATE_GRADIENT_METHOD_NORMAL_ERROR:
+            with ConjugateGradientMethodNormalError.factory_method(
+                    signal=job_request.signal_array, image_size=job_request.image_size,
+                    algorithm=job_request.algorithm
+            ) as algorithm:
+                self.load_sources.set()
+                computed_array, interactions_count = algorithm.generate_image()
+        elif job_request.algorithm == Algorithms.FAST_ITERATIVE_SHRINKAGE_THRESHOLD_ALGORITHM:
+            with FastIterativeShrinkageThresholdAlgorithm.factory_method(
+                    signal=job_request.signal_array, image_size=job_request.image_size,
+                    algorithm=job_request.algorithm
+            ) as algorithm:
+                self.load_sources.set()
+                computed_array, interactions_count = algorithm.generate_image()
+
+        image_shape = (job_request.value, job_request.value)
+
+        first_image = Image.fromarray(
+            numpy.uint8(cv2.normalize(
+                src=computed_array.reshape(image_shape), alpha=0, beta=255,
+                dst=numpy.zeros(shape=image_shape), norm_type=cv2.NORM_MINMAX
+            ).transpose()), mode='L'
+        )
+
+        first_image.save(
+            fp=os.path.join(os.path.dirname(os.path.abspath(__file__)), '../images/', f'{str(uuid.uuid4())}.bmp'))
+
+        first_image.save(
+            fp=os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../backend/images',
+                            f'{str(job_request.index)}.bmp'))
+
+        requests.post(url=f'http://localhost:3333/job/{job_request.index}',
+                      json=ResultResponse(final_datetime=datetime.now(), status=Status.FINISHED,
+                                          interactions=interactions_count).json(
+                          exclude_unset=True))
 
         ch.basic_ack(delivery_tag=method.delivery_tag)

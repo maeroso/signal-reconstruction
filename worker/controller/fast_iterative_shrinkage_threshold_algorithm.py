@@ -1,9 +1,6 @@
-import os
-import uuid
+from typing import Tuple
 
-import cv2
 import numpy
-from PIL import Image
 from pandas import read_pickle
 
 from model.generic_algorithm import GenericAlgorithm
@@ -47,9 +44,9 @@ class FastIterativeShrinkageThresholdAlgorithm(GenericAlgorithm):
             else:
                 return signal + threshold
 
-    def generate_image(self) -> Image:
+    def generate_image(self) -> Tuple[numpy.ndarray, int]:
 
-        f_old = numpy.zeros((pow(self.image_size.value, 2), 1), dtype=numpy.float64)
+        f_old = numpy.zeros((pow(self.image_size.value, 2),), dtype=numpy.float64)
         y_old = f_old
         alfa_old = float(1)
         lambda_value = numpy.multiply(
@@ -128,18 +125,6 @@ class FastIterativeShrinkageThresholdAlgorithm(GenericAlgorithm):
             y_old = y_next
             loop_counter = counter
 
-        image_shape = (self.image_size.value, self.image_size.value)
-
-        first_image = Image.fromarray(
-            numpy.uint8(cv2.normalize(
-                src=f_old.reshape(image_shape), alpha=0, beta=255,
-                dst=numpy.zeros_like(shape=image_shape), norm_type=cv2.NORM_MINMAX
-            ).transpose()), mode='L'
-        )
-
-        first_image.save(
-            fp=os.path.join(os.path.dirname(os.path.abspath(__file__)), '../images/', f'{str(uuid.uuid4())}.bmp'))
-
         ThreadSafeTools.print(
             f" [x] Alguns dados sobre a imagem gerada:\n" +
             f"\tNúmero de iterações: {loop_counter}\n" +
@@ -147,4 +132,4 @@ class FastIterativeShrinkageThresholdAlgorithm(GenericAlgorithm):
             f"\tUltima taxa de erro: {error}\n"
         )
 
-        return first_image
+        return f_old, loop_counter
