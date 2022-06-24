@@ -263,7 +263,7 @@ const fetchJobs = async (email: string, userName: string) => {
   }
 }
 
-const firstJobsFetch = async (email: string, userName: string, setJobs: any) => {
+const handleJobsFetch = async (email: string, userName: string, setJobs: any) => {
   const newJobs: any = await fetchJobs(email, userName);
   setJobs(newJobs)
 } 
@@ -272,11 +272,9 @@ const JobsTable: React.FC = () => {
   const { email, userName } = useUser();
   const { jobs, setJobs } = useUser()
 
-  //firstJobsFetch(email, userName, setJobs)
-  setInterval(async () => {
-    const newJobs: any = await fetchJobs(email, userName);
-    setJobs(newJobs)
-  }, 20000);
+  /* useEffect(() => {
+    //handleJobsFetch(email, userName, setJobs)
+  }) */
 
   return (
     <div
@@ -289,6 +287,7 @@ const JobsTable: React.FC = () => {
         backgroundColor: "#fff",
       }}
     >
+      <button onClick={() => { handleJobsFetch(email, userName, setJobs) }}>ATUALIZAR</button>
       <DataGrid columns={columns} rows={jobs} />
     </div>
   );

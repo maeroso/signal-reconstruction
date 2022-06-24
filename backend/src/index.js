@@ -33,6 +33,25 @@ app.get("/jobs/:email", async (req, res) => {
   }
 });
 
+app.post("/job/:id", async (req, res) => {
+  const { id } = req.params
+  const { init_datetime, final_datetime, interactions, status } = req.body
+
+  try {
+    await knex('jobs')
+      .where('id', '=', id)
+      .update({
+        status: status,
+        iterations: interactions,
+        startTime: init_datetime,
+        endTime: final_datetime
+      })
+    res.status(200).send({ message: 'Job atualizado com sucesso' })
+  } catch {
+    res.status(500).send({ message: 'Não foi possível atualizar job' })
+  }
+})
+
 app.post("/upload", async (req, res) => {
   const { g, alg, imageSize, increaseRep, email, fileName } = req.body;
 

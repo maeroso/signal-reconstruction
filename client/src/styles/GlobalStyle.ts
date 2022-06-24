@@ -35,7 +35,7 @@ export const GlobalStyle = createGlobalStyle`
     padding: 10px;
     color: #fff;
     margin: 0 2px;
-    background-color: #076974;
+    background-color: #95cf;
     border: none;
     cursor: pointer;
   }
