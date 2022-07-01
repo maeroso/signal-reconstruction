@@ -61,7 +61,7 @@ class FastIterativeShrinkageThresholdAlgorithm(GenericAlgorithm):
         threshold = numpy.absolute(numpy.divide(lambda_value, self.__c))
         f_next = 0
         loop_counter = 0
-        loop_maximum = 20
+        loop_maximum = 50
         error = 0
 
         for counter in range(loop_maximum):
