@@ -16,7 +16,7 @@ class ConjugateGradientMethodNormalError(GenericAlgorithm):
     def generate_image(self) -> Tuple[numpy.ndarray, int]:
         super(ConjugateGradientMethodNormalError, self).generate_image()
 
-        loop_maximum = 100
+        loop_maximum = 50
         loop_counter = 0
         f_next = 0
         error = 0

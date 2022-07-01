@@ -24,6 +24,7 @@ class FastIterativeShrinkageThresholdAlgorithm(GenericAlgorithm):
             ),
             ord=2
         )
+        return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         del self.__c

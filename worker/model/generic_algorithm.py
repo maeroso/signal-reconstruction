@@ -51,7 +51,6 @@ class GenericAlgorithm:
         del self.shape_matriz_h
         del self.erro_minimo
         del self.image_size
-        del self
 
     def generate_image(self) -> Tuple[numpy.ndarray, int]:
         del self.ephemeral_matrix

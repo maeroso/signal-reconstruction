@@ -26,7 +26,7 @@ class ConjugateGradientNormalResidual(GenericAlgorithm):
         iteration_number = 0
         error: numpy.float64 = numpy.float64('0')
 
-        for _ in range(150):
+        for _ in range(50):
             iteration_number += 1
             w_new = numpy.matmul(read_pickle(filepath_or_buffer=self.matriz_h_path).to_numpy(), p_old)
             alpha = numpy.divide(numpy.power(numpy.linalg.norm(z_old), 2), numpy.power(numpy.linalg.norm(w_new), 2))
