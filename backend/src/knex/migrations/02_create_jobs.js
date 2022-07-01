@@ -1,8 +1,7 @@
 exports.up = function(knex, Promise) {
   return knex.schema.createTable('jobs', function(t) {
       t.increments('id').unsigned().primary();
-      t.string('userEmail').notNull();
-      t.string('userName').notNull();
+      t.string('userEmail').notNull();      
       t.string('originalSignalName').notNull();
       t.integer('algorithm').notNull();
       t.integer('signalIncreaseRep').notNull();

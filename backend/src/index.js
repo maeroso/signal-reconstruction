@@ -104,15 +104,15 @@ app.post("/upload", async (req, res) => {
         channel.sendToQueue(queue, Buffer.from(JSON.stringify(msg)), {
           persistent: true,
         });
-        console.log(" [x] Sent '%s'", msg);
-        res.send(msg);
+        console.log(" [x] Sent '%s'", msg);        
       });
       setTimeout(function () {
         connection.close();
       }, 500);
     });
     res.status(200).send({ message: "Sinal na fila de jobs" });
-  } catch {
+  } catch (erro) {
+    console.log(erro)
     res.status(500).send({ message: "Erro ao processar sinal" });
   }
 });
