@@ -1,11 +1,15 @@
-files/H-1/
-
 __pycache__/
 
 backend/node_modules/
 
-worker/images/
-
 /venv/
 
 /.idea/*
+
+files/
+
+*.sqlite
+
+package-lock.json
+
+images
