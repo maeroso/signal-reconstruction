@@ -34,6 +34,10 @@ const columns: Array<GridColumn> = [
     headerName: "Tamanho pixels",
   },
   {
+    field: "fileName",
+    headerName: "Nome arquivo sinal",
+  },
+  {
     field: "increase",
     headerName: "Nr. incrementos",
   },
@@ -157,6 +161,16 @@ const DataGrid: React.FC<DataGridProps> = (props: DataGridProps) => {
             padding: "10px",
             textAlign: "center",
           }}
+          key={row.fileName + "-" + row.id}
+        >
+          {row.fileName}
+        </td>
+        <td
+          style={{
+            border: "1px solid #f1f1f1",
+            padding: "10px",
+            textAlign: "center",
+          }}
           key={row.increase + "-" + row.id}
         >
           {row.increase}
@@ -237,6 +251,7 @@ interface GridRow {
   startTime: string,
   endTime: string,
   imageSize: string,
+  fileName: string,
   increase: number,
   iteration: number,
   image: string,
@@ -255,6 +270,7 @@ const fetchJobs = async (email: string, userName: string) => {
         startTime: item.startTime ? new Date(item.startTime).toLocaleString() : '',
         endTime: item.endTime ? new Date(item.endTime).toLocaleString() : '',
         imageSize: imageSize[item.pixelSize],
+        fileName: item.originalSignalName,
         increase: item.signalIncreaseRep,
         iteration: item.iterations,
         image: 'http://localhost:3333/images/' + item.id + '.bmp',
@@ -266,7 +282,7 @@ const fetchJobs = async (email: string, userName: string) => {
 
 const handleJobsFetch = async (email: string, userName: string, setJobs: any) => {
   const newJobs: any = await fetchJobs(email, userName);
-  setJobs(newJobs)
+  (newJobs && newJobs.data && newJobs.data.jobs && newJobs.data.jobs.length > 0) && setJobs(newJobs)
 } 
 
 const JobsTable: React.FC = () => {
