@@ -280,7 +280,7 @@ const JobsTable: React.FC = () => {
   return (
     <div
       style={{
-        height: 400,
+        height: "auto",
         width: "87vw",
         boxShadow: "1px 1px 3px rgba(55, 55, 55, 0.5)",
         borderRadius: "5px",
