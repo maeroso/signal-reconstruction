@@ -282,7 +282,7 @@ const fetchJobs = async (email: string, userName: string) => {
 
 const handleJobsFetch = async (email: string, userName: string, setJobs: any) => {
   const newJobs: any = await fetchJobs(email, userName);
-  (newJobs && newJobs.data && newJobs.data.jobs && newJobs.data.jobs.length > 0) && setJobs(newJobs)
+  setJobs(newJobs)
 } 
 
 const JobsTable: React.FC = () => {

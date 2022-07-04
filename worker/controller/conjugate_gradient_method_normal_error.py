@@ -76,4 +76,4 @@ class ConjugateGradientMethodNormalError(GenericAlgorithm):
             f"\tUltima taxa de erro: {error}\n"
         )
 
-        return best_try, loop_counter
+        return f_old, loop_counter

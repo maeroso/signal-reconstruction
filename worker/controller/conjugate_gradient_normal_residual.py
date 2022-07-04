@@ -54,4 +54,4 @@ class ConjugateGradientNormalResidual(GenericAlgorithm):
             f"\tUltima taxa de erro: {error}\n"
         )
 
-        return melhor_imagem, iteration_number
+        return f_old, iteration_number

@@ -13,3 +13,6 @@ files/
 package-lock.json
 
 images
+worker/.idea/
+
+worker/static/
